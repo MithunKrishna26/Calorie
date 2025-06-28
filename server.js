@@ -623,30 +623,118 @@ app.get("/api/activity-log", authenticateToken, async (req, res) => {
   }
 })
 
+// Activity calendar endpoint
 app.get("/api/activity-calendar", authenticateToken, async (req, res) => {
   try {
     const { year, month } = req.query
-
-    if (!year || !month) {
-      return res.status(400).json({ error: "Year and month parameters are required" })
-    }
+    const userId = req.user.userId
 
     const result = await pool.query(
       `
       SELECT DISTINCT al.date
       FROM activity_logs al
       WHERE al.user_id = $1 
-        AND EXTRACT(YEAR FROM al.date) = $2 
-        AND EXTRACT(MONTH FROM al.date) = $3
+      AND EXTRACT(YEAR FROM al.date) = $2 
+      AND EXTRACT(MONTH FROM al.date) = $3
       ORDER BY al.date
     `,
-      [req.user.userId, year, month],
+      [userId, year, month],
     )
 
-    const workoutDays = result.rows.map(row => row.date)
+    const workoutDays = result.rows.map((row) => row.date.toISOString().split("T")[0])
     res.json(workoutDays)
   } catch (error) {
     console.error("Activity calendar fetch error:", error)
+    res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+// Activity stats endpoint
+app.get("/api/activity-stats", authenticateToken, async (req, res) => {
+  try {
+    const { year, month } = req.query
+    const userId = req.user.userId
+
+    // Get total calories burned, total minutes, and workout days for the month
+    const statsResult = await pool.query(
+      `
+      SELECT 
+        SUM((a.calories_burned_per_hour * al.duration_minutes) / 60) as total_calories,
+        SUM(al.duration_minutes) as total_minutes,
+        COUNT(DISTINCT al.date) as workout_days
+      FROM activity_logs al
+      JOIN activities a ON al.activity_id = a.id
+      WHERE al.user_id = $1 
+      AND EXTRACT(YEAR FROM al.date) = $2 
+      AND EXTRACT(MONTH FROM al.date) = $3
+    `,
+      [userId, year, month],
+    )
+
+    // Calculate current streak
+    const streakResult = await pool.query(
+      `
+      WITH RECURSIVE dates AS (
+        SELECT CURRENT_DATE as date
+        UNION ALL
+        SELECT date - INTERVAL '1 day'
+        FROM dates
+        WHERE date > CURRENT_DATE - INTERVAL '30 days'
+      ),
+      workout_dates AS (
+        SELECT DISTINCT al.date
+        FROM activity_logs al
+        WHERE al.user_id = $1
+        ORDER BY al.date DESC
+      ),
+      streak_calc AS (
+        SELECT 
+          d.date,
+          CASE WHEN wd.date IS NOT NULL THEN 1 ELSE 0 END as has_workout
+        FROM dates d
+        LEFT JOIN workout_dates wd ON d.date = wd.date
+        ORDER BY d.date DESC
+      ),
+      streak_count AS (
+        SELECT 
+          date,
+          has_workout,
+          CASE 
+            WHEN has_workout = 1 THEN 
+              COALESCE(
+                (SELECT SUM(has_workout) 
+                 FROM streak_calc sc2 
+                 WHERE sc2.date >= sc1.date 
+                 AND sc2.has_workout = 1
+                 AND NOT EXISTS (
+                   SELECT 1 FROM streak_calc sc3 
+                   WHERE sc3.date BETWEEN sc1.date AND sc2.date 
+                   AND sc3.has_workout = 0
+                 )), 0
+              )
+            ELSE 0
+          END as streak
+        FROM streak_calc sc1
+        WHERE has_workout = 1
+        ORDER BY date DESC
+        LIMIT 1
+      )
+      SELECT COALESCE(MAX(streak), 0) as current_streak
+      FROM streak_count
+    `,
+      [userId],
+    )
+
+    const stats = {
+      totalCalories: Math.round(statsResult.rows[0].total_calories || 0),
+      totalMinutes: parseInt(statsResult.rows[0].total_minutes || 0),
+      workoutDays: parseInt(statsResult.rows[0].workout_days || 0),
+      currentStreak: parseInt(streakResult.rows[0].current_streak || 0)
+    }
+
+    res.json(stats)
+  } catch (error) {
+    console.error("Activity stats fetch error:", error)
     res.status(500).json({ error: "Internal server error" })
   }
 })
