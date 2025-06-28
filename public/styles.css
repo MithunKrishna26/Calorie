@@ -1334,3 +1334,113 @@ button:focus,
   outline: 2px solid var(--accent-purple);
   outline-offset: 2px;
 }
+
+/* --- Activity Calendar & Cards --- */
+.calendar-card {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  max-width: 700px;
+  border: 1px solid var(--gray-200);
+}
+.calendar-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.calendar-btn {
+  background: none;
+  border: none;
+  color: var(--accent-purple);
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: background 0.2s;
+}
+.calendar-btn:hover {
+  background: #f3e8ff;
+}
+.current-month {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--accent-purple);
+  min-width: 160px;
+  text-align: center;
+}
+.calendar-wrapper {
+  margin-top: 1rem;
+}
+.calendar-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-weight: 600;
+  color: #888;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.5rem;
+}
+.calendar-day {
+  background: var(--gray-50);
+  border-radius: var(--radius-lg);
+  min-height: 60px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  position: relative;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid transparent;
+  box-shadow: 0 1px 2px 0 rgb(102 126 234 / 0.04);
+}
+.calendar-day.has-workout {
+  background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+  color: #fff;
+  font-weight: 700;
+}
+.calendar-day.selected {
+  border: 2px solid var(--accent-purple);
+  background: #ede9fe;
+  color: var(--accent-purple);
+}
+.calendar-day.other-month {
+  opacity: 0.3;
+}
+.calendar-day.today {
+  border: 2px solid #a18cd1;
+  background: #e0e7ff;
+  color: var(--accent-purple);
+}
+.calendar-day:hover {
+  background: #e0e7ff;
+  color: var(--accent-purple);
+}
+.activity-form-card, .today-activities-card, .activity-stats-card {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  max-width: 700px;
+  border: 1px solid var(--gray-200);
+}
+.activity-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+@media (max-width: 1200px) {
+  .activity-container {
+    flex-direction: column;
+  }
+}
+/* --- End Activity Calendar & Cards --- */
