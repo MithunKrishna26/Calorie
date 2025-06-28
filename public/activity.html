@@ -255,6 +255,8 @@
             document.getElementById('activityDate').value = new Date().toISOString().split('T')[0];
             loadActivities();
             loadActivityCalendar();
+            loadTodayActivities();
+            loadMonthlyStats();
             setupEventListeners();
             renderCalendar();
             updateTodayDate();
@@ -265,12 +267,14 @@
                 currentDate.setMonth(currentDate.getMonth() - 1);
                 renderCalendar();
                 loadActivityCalendar();
+                loadMonthlyStats();
             });
 
             document.getElementById('nextMonth').addEventListener('click', () => {
                 currentDate.setMonth(currentDate.getMonth() + 1);
                 renderCalendar();
                 loadActivityCalendar();
+                loadMonthlyStats();
             });
 
             document.getElementById('activityForm').addEventListener('submit', logActivity);
@@ -287,6 +291,8 @@
                 if (response.ok) {
                     activities = await response.json();
                     populateActivitySelect();
+                } else {
+                    console.error('Failed to load activities:', response.status);
                 }
             } catch (error) {
                 console.error('Failed to load activities:', error);
@@ -308,7 +314,6 @@
         async function logActivity(event) {
             event.preventDefault();
 
-            const formData = new FormData(event.target);
             const activityId = document.getElementById('activitySelect').value;
             const durationMinutes = document.getElementById('durationInput').value;
             const date = document.getElementById('activityDate').value;
@@ -335,10 +340,16 @@
                 });
 
                 if (response.ok) {
-                    event.target.reset();
+                    // Reset form properly
+                    document.getElementById('activitySelect').value = '';
+                    document.getElementById('durationInput').value = '';
+                    document.getElementById('activityNotes').value = '';
                     document.getElementById('activityDate').value = new Date().toISOString().split('T')[0];
+                    
+                    // Reload data
                     loadTodayActivities();
                     loadActivityCalendar();
+                    loadMonthlyStats();
                     showNotification('Activity logged successfully!', 'success');
                 } else {
                     const data = await response.json();
@@ -352,6 +363,7 @@
 
         async function loadTodayActivities() {
             const today = selectedDate.toISOString().split('T')[0];
+            console.log('Loading activities for date:', today);
             
             try {
                 const response = await fetch(`${API_BASE}/api/activity-log?date=${today}`, {
@@ -362,11 +374,51 @@
 
                 if (response.ok) {
                     const todayActivities = await response.json();
+                    console.log('Today\'s activities:', todayActivities);
                     renderTodayActivities(todayActivities);
+                } else {
+                    console.error('Failed to load today\'s activities:', response.status);
                 }
             } catch (error) {
                 console.error('Failed to load today\'s activities:', error);
             }
+        }
+
+        async function loadMonthlyStats() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth() + 1;
+            console.log('Loading stats for:', year, month);
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/activity-stats?year=${year}&month=${month}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const stats = await response.json();
+                    console.log('Monthly stats:', stats);
+                    updateStatsDisplay(stats);
+                } else {
+                    console.error('Failed to load monthly stats:', response.status);
+                }
+            } catch (error) {
+                console.error('Failed to load monthly stats:', error);
+            }
+        }
+
+        function updateStatsDisplay(stats) {
+            document.getElementById('totalCalories').textContent = stats.totalCalories || 0;
+            document.getElementById('totalTime').textContent = formatTime(stats.totalMinutes || 0);
+            document.getElementById('workoutDays').textContent = stats.workoutDays || 0;
+            document.getElementById('currentStreak').textContent = `${stats.currentStreak || 0} days`;
+        }
+
+        function formatTime(minutes) {
+            const hours = Math.floor(minutes / 60);
+            const mins = minutes % 60;
+            return `${hours}h ${mins}m`;
         }
 
         function renderTodayActivities(activities) {
