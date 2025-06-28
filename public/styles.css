@@ -1392,13 +1392,14 @@ button:focus,
   border-radius: var(--radius-lg);
   min-height: 60px;
   display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   font-size: 1rem;
   cursor: pointer;
   transition: background 0.2s, color 0.2s;
   position: relative;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0.25rem;
   border: 2px solid transparent;
   box-shadow: 0 1px 2px 0 rgb(102 126 234 / 0.04);
 }
@@ -1423,6 +1424,27 @@ button:focus,
 .calendar-day:hover {
   background: #e0e7ff;
   color: var(--accent-purple);
+}
+.day-number {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+}
+.workout-indicator {
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+.calendar-day.has-workout .workout-indicator {
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
 }
 .activity-form-card, .today-activities-card, .activity-stats-card {
   background: var(--white);
@@ -1548,6 +1570,11 @@ button:focus,
   font-style: italic;
   margin-top: 0.5rem;
 }
+.activity-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
 .activity-calories {
   font-size: 1.1rem;
   font-weight: 600;
@@ -1556,6 +1583,87 @@ button:focus,
   padding: 0.5rem 1rem;
   border-radius: var(--radius-lg);
 }
+.delete-activity-btn {
+  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  font-size: 1rem;
+}
+.delete-activity-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+}
+
+/* Calendar Day Improvements */
+.calendar-day {
+  background: var(--gray-50);
+  border-radius: var(--radius-lg);
+  min-height: 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  position: relative;
+  padding: 0.5rem 0.25rem;
+  border: 2px solid transparent;
+  box-shadow: 0 1px 2px 0 rgb(102 126 234 / 0.04);
+}
+.calendar-day.has-workout {
+  background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+  color: #fff;
+  font-weight: 700;
+}
+.calendar-day.selected {
+  border: 2px solid var(--accent-purple);
+  background: #ede9fe;
+  color: var(--accent-purple);
+}
+.calendar-day.other-month {
+  opacity: 0.3;
+}
+.calendar-day.today {
+  border: 2px solid #a18cd1;
+  background: #e0e7ff;
+  color: var(--accent-purple);
+}
+.calendar-day:hover {
+  background: #e0e7ff;
+  color: var(--accent-purple);
+}
+.day-number {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1;
+}
+.workout-indicator {
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+.calendar-day.has-workout .workout-indicator {
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+/* --- End Activity Calendar & Cards --- */
 
 @media (max-width: 1200px) {
   .activity-container {
@@ -1574,8 +1682,7 @@ button:focus,
     align-items: flex-start;
     gap: 0.75rem;
   }
-  .activity-calories {
+  .activity-actions {
     align-self: flex-end;
   }
 }
-/* --- End Activity Calendar & Cards --- */
