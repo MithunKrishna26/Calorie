@@ -599,26 +599,49 @@ app.post("/api/activity-log", authenticateToken, async (req, res) => {
 app.get("/api/activity-log", authenticateToken, async (req, res) => {
   try {
     const { date } = req.query
+    const userId = req.user.userId
 
-    if (!date) {
-      return res.status(400).json({ error: "Date parameter is required" })
-    }
-
-    const result = await pool.query(
-      `
-      SELECT al.id, al.duration_minutes, al.date, al.notes, al.logged_at,
-             a.id as activity_id, a.name, a.calories_burned_per_hour, a.category
+    let query = `
+      SELECT al.*, a.id as activity_id, a.name, a.calories_burned_per_hour, a.category
       FROM activity_logs al
       JOIN activities a ON al.activity_id = a.id
-      WHERE al.user_id = $1 AND al.date = $2
-      ORDER BY al.logged_at DESC
-    `,
-      [req.user.userId, date],
-    )
+      WHERE al.user_id = $1
+    `
+    let params = [userId]
 
+    if (date) {
+      query += " AND al.date = $2"
+      params.push(date)
+    }
+
+    query += " ORDER BY al.logged_at DESC"
+
+    const result = await pool.query(query, params)
     res.json(result.rows)
   } catch (error) {
     console.error("Activity log fetch error:", error)
+    res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+// Delete activity log endpoint
+app.delete("/api/activity-log/:id", authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params
+    const userId = req.user.userId
+
+    const result = await pool.query(
+      "DELETE FROM activity_logs WHERE id = $1 AND user_id = $2 RETURNING *",
+      [id, userId]
+    )
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Activity log not found" })
+    }
+
+    res.json({ message: "Activity log deleted successfully" })
+  } catch (error) {
+    console.error("Activity log deletion error:", error)
     res.status(500).json({ error: "Internal server error" })
   }
 })
@@ -655,6 +678,8 @@ app.get("/api/activity-stats", authenticateToken, async (req, res) => {
     const { year, month } = req.query
     const userId = req.user.userId
 
+    console.log(`Fetching stats for user ${userId}, year ${year}, month ${month}`)
+
     // Get total calories burned, total minutes, and workout days for the month
     const statsResult = await pool.query(
       `
@@ -670,6 +695,8 @@ app.get("/api/activity-stats", authenticateToken, async (req, res) => {
     `,
       [userId, year, month],
     )
+
+    console.log('Stats result:', statsResult.rows[0])
 
     // Calculate current streak
     const streakResult = await pool.query(
@@ -725,6 +752,8 @@ app.get("/api/activity-stats", authenticateToken, async (req, res) => {
       [userId],
     )
 
+    console.log('Streak result:', streakResult.rows[0])
+
     const stats = {
       totalCalories: Math.round(statsResult.rows[0].total_calories || 0),
       totalMinutes: parseInt(statsResult.rows[0].total_minutes || 0),
@@ -732,6 +761,7 @@ app.get("/api/activity-stats", authenticateToken, async (req, res) => {
       currentStreak: parseInt(streakResult.rows[0].current_streak || 0)
     }
 
+    console.log('Final stats:', stats)
     res.json(stats)
   } catch (error) {
     console.error("Activity stats fetch error:", error)
@@ -1007,6 +1037,27 @@ app.get("/api/chatbot/history", authenticateToken, async (req, res) => {
     res.json(result.rows)
   } catch (error) {
     console.error("Chatbot history fetch error:", error)
+    res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+// Debug endpoint to check activity logs
+app.get("/api/debug/activity-logs", authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.userId
+    
+    const result = await pool.query(
+      "SELECT al.*, a.name as activity_name FROM activity_logs al JOIN activities a ON al.activity_id = a.id WHERE al.user_id = $1 ORDER BY al.date DESC LIMIT 10",
+      [userId]
+    )
+    
+    res.json({
+      userId,
+      totalLogs: result.rows.length,
+      logs: result.rows
+    })
+  } catch (error) {
+    console.error("Debug activity logs error:", error)
     res.status(500).json({ error: "Internal server error" })
   }
 })
