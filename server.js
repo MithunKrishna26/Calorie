@@ -566,17 +566,25 @@ app.post("/api/activity-log", authenticateToken, async (req, res) => {
       return res.status(400).json({ error: "Activity ID, duration, and date are required" })
     }
 
+    console.log('Received activity log request:', { activityId, durationMinutes, date, notes })
+
     // Verify activity exists
     const activityResult = await pool.query("SELECT * FROM activities WHERE id = $1", [activityId])
     if (activityResult.rows.length === 0) {
       return res.status(404).json({ error: "Activity not found" })
     }
 
+    // Ensure date is in YYYY-MM-DD format and handle timezone properly
+    const formattedDate = new Date(date + 'T00:00:00').toISOString().split('T')[0]
+    console.log('Formatted date for storage:', formattedDate)
+
     // Add to activity log
     const result = await pool.query(
       "INSERT INTO activity_logs (user_id, activity_id, duration_minutes, date, notes) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-      [req.user.userId, activityId, durationMinutes, date, notes || null],
+      [req.user.userId, activityId, durationMinutes, formattedDate, notes || null],
     )
+
+    console.log('Activity log created:', result.rows[0])
 
     // Return the log entry with activity details
     const logWithActivity = await pool.query(
@@ -680,13 +688,20 @@ app.get("/api/activity-stats", authenticateToken, async (req, res) => {
 
     console.log(`Fetching stats for user ${userId}, year ${year}, month ${month}`)
 
+    // First, let's check if there are any activity logs for this user
+    const userLogsCheck = await pool.query(
+      "SELECT COUNT(*) as total_logs FROM activity_logs WHERE user_id = $1",
+      [userId]
+    )
+    console.log('Total logs for user:', userLogsCheck.rows[0].total_logs)
+
     // Get total calories burned, total minutes, and workout days for the month
     const statsResult = await pool.query(
       `
       SELECT 
-        SUM((a.calories_burned_per_hour * al.duration_minutes) / 60) as total_calories,
-        SUM(al.duration_minutes) as total_minutes,
-        COUNT(DISTINCT al.date) as workout_days
+        COALESCE(SUM((a.calories_burned_per_hour * al.duration_minutes) / 60), 0) as total_calories,
+        COALESCE(SUM(al.duration_minutes), 0) as total_minutes,
+        COALESCE(COUNT(DISTINCT al.date), 0) as workout_days
       FROM activity_logs al
       JOIN activities a ON al.activity_id = a.id
       WHERE al.user_id = $1 
@@ -698,56 +713,40 @@ app.get("/api/activity-stats", authenticateToken, async (req, res) => {
 
     console.log('Stats result:', statsResult.rows[0])
 
-    // Calculate current streak
+    // Let's also check what dates are actually stored for this month
+    const dateCheck = await pool.query(
+      `
+      SELECT al.date, a.name, al.duration_minutes, a.calories_burned_per_hour
+      FROM activity_logs al
+      JOIN activities a ON al.activity_id = a.id
+      WHERE al.user_id = $1 
+      AND EXTRACT(YEAR FROM al.date) = $2 
+      AND EXTRACT(MONTH FROM al.date) = $3
+      ORDER BY al.date
+    `,
+      [userId, year, month],
+    )
+    console.log('Date check result:', dateCheck.rows)
+
+    // Calculate current streak with a simpler approach
     const streakResult = await pool.query(
       `
-      WITH RECURSIVE dates AS (
-        SELECT CURRENT_DATE as date
-        UNION ALL
-        SELECT date - INTERVAL '1 day'
-        FROM dates
-        WHERE date > CURRENT_DATE - INTERVAL '30 days'
-      ),
-      workout_dates AS (
+      WITH workout_dates AS (
         SELECT DISTINCT al.date
         FROM activity_logs al
         WHERE al.user_id = $1
         ORDER BY al.date DESC
       ),
-      streak_calc AS (
-        SELECT 
-          d.date,
-          CASE WHEN wd.date IS NOT NULL THEN 1 ELSE 0 END as has_workout
-        FROM dates d
-        LEFT JOIN workout_dates wd ON d.date = wd.date
-        ORDER BY d.date DESC
-      ),
-      streak_count AS (
-        SELECT 
-          date,
-          has_workout,
-          CASE 
-            WHEN has_workout = 1 THEN 
-              COALESCE(
-                (SELECT SUM(has_workout) 
-                 FROM streak_calc sc2 
-                 WHERE sc2.date >= sc1.date 
-                 AND sc2.has_workout = 1
-                 AND NOT EXISTS (
-                   SELECT 1 FROM streak_calc sc3 
-                   WHERE sc3.date BETWEEN sc1.date AND sc2.date 
-                   AND sc3.has_workout = 0
-                 )), 0
-              )
-            ELSE 0
-          END as streak
-        FROM streak_calc sc1
-        WHERE has_workout = 1
-        ORDER BY date DESC
-        LIMIT 1
+      recent_workouts AS (
+        SELECT date,
+               ROW_NUMBER() OVER (ORDER BY date DESC) as rn,
+               date - (ROW_NUMBER() OVER (ORDER BY date DESC) || ' days')::INTERVAL as grp
+        FROM workout_dates
+        WHERE date >= CURRENT_DATE - INTERVAL '30 days'
       )
-      SELECT COALESCE(MAX(streak), 0) as current_streak
-      FROM streak_count
+      SELECT COALESCE(MAX(COUNT(*)), 0) as current_streak
+      FROM recent_workouts
+      WHERE grp = (SELECT grp FROM recent_workouts WHERE rn = 1)
     `,
       [userId],
     )
@@ -755,10 +754,10 @@ app.get("/api/activity-stats", authenticateToken, async (req, res) => {
     console.log('Streak result:', streakResult.rows[0])
 
     const stats = {
-      totalCalories: Math.round(statsResult.rows[0].total_calories || 0),
-      totalMinutes: parseInt(statsResult.rows[0].total_minutes || 0),
-      workoutDays: parseInt(statsResult.rows[0].workout_days || 0),
-      currentStreak: parseInt(streakResult.rows[0].current_streak || 0)
+      totalCalories: Math.round(parseFloat(statsResult.rows[0].total_calories) || 0),
+      totalMinutes: parseInt(statsResult.rows[0].total_minutes) || 0,
+      workoutDays: parseInt(statsResult.rows[0].workout_days) || 0,
+      currentStreak: parseInt(streakResult.rows[0].current_streak) || 0
     }
 
     console.log('Final stats:', stats)
@@ -1058,6 +1057,24 @@ app.get("/api/debug/activity-logs", authenticateToken, async (req, res) => {
     })
   } catch (error) {
     console.error("Debug activity logs error:", error)
+    res.status(500).json({ error: "Internal server error" })
+  }
+})
+
+// Test endpoint to verify date handling
+app.get("/api/test/date/:date", (req, res) => {
+  try {
+    const { date } = req.params
+    const formattedDate = new Date(date + 'T00:00:00').toISOString().split('T')[0]
+    
+    res.json({
+      originalDate: date,
+      formattedDate: formattedDate,
+      timestamp: new Date(date + 'T00:00:00').getTime(),
+      isoString: new Date(date + 'T00:00:00').toISOString()
+    })
+  } catch (error) {
+    console.error("Date test error:", error)
     res.status(500).json({ error: "Internal server error" })
   }
 })
