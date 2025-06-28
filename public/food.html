@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CalorieFit - Food Tracking</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Top Bar with Home Button -->
+        <div class="top-bar">
+            <a href="dashboard.html" class="home-btn" title="Home">
+                <i class="fas fa-home"></i>
+            </a>
+        </div>
+
+        <!-- Centered Headings -->
+        <header class="centered-header">
+            <h1>CalorieFit</h1>
+            <h2>Food Tracking</h2>
+            <p>Log your meals and track nutrition</p>
+        </header>
+        
+        <main class="food-tracking">
+            <section class="food-search">
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="food-search" placeholder="Search for food...">
+                    </div>
+                    <button id="search-btn" class="btn-primary">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+                <div id="search-results" class="food-results"></div>
+            </section>
+            
+            <section class="food-log">
+                <div class="card-header">
+                    <h2><i class="fas fa-utensils"></i> Today's Food Log</h2>
+                    <div class="date-display">
+                        <i class="fas fa-calendar-day"></i>
+                        <span id="current-date"></span>
+                    </div>
+                </div>
+                <div id="log-items" class="log-items">
+                    <p class="empty-message">No food logged yet today</p>
+                </div>
+                
+                <div class="nutrition-summary">
+                    <div class="card-header">
+                        <h2><i class="fas fa-chart-pie"></i> Today's Nutrition</h2>
+                    </div>
+                    <div class="nutrition-grid">
+                        <div class="nutrition-card calories">
+                            <div class="card-icon">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Calories</h3>
+                                <div class="card-value" id="total-calories">0</div>
+                                <div class="card-label">kcal</div>
+                            </div>
+                        </div>
+                        <div class="nutrition-card protein">
+                            <div class="card-icon">
+                                <i class="fas fa-dumbbell"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Protein</h3>
+                                <div class="card-value" id="total-protein">0</div>
+                                <div class="card-label">grams</div>
+                            </div>
+                        </div>
+                        <div class="nutrition-card carbs">
+                            <div class="card-icon">
+                                <i class="fas fa-bread-slice"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Carbs</h3>
+                                <div class="card-value" id="total-carbs">0</div>
+                                <div class="card-label">grams</div>
+                            </div>
+                        </div>
+                        <div class="nutrition-card fats">
+                            <div class="card-icon">
+                                <i class="fas fa-seedling"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Fats</h3>
+                                <div class="card-value" id="total-fats">0</div>
+                                <div class="card-label">grams</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const today = new Date().toISOString().split('T')[0];
+
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+
+        // DOM elements
+        const foodSearch = document.getElementById('food-search');
+        const searchBtn = document.getElementById('search-btn');
+        const searchResults = document.getElementById('search-results');
+        const logItems = document.getElementById('log-items');
+        const totalCalories = document.getElementById('total-calories');
+        const totalProtein = document.getElementById('total-protein');
+        const totalCarbs = document.getElementById('total-carbs');
+        const totalFats = document.getElementById('total-fats');
+
+        // Display current date
+        document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // Event listeners
+        searchBtn.addEventListener('click', searchFood);
+        foodSearch.addEventListener('keypress', e => {
+            if (e.key === 'Enter') searchFood();
+        });
+
+        async function searchFood() {
+            if (!checkAuth()) return;
+
+            const query = foodSearch.value.trim();
+            
+            // Show loading state
+            searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
+            searchBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/foods/search?q=${encodeURIComponent(query)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                    throw new Error('Search failed');
+                }
+
+                const results = await response.json();
+                displayResults(results);
+            } catch (error) {
+                console.error('Search error:', error);
+                searchResults.innerHTML = '<p class="no-results">Search failed. Please try again.</p>';
+            } finally {
+                // Reset button state
+                searchBtn.innerHTML = '<i class="fas fa-search"></i> Search';
+                searchBtn.disabled = false;
+            }
+        }
+
+        function displayResults(results) {
+            searchResults.innerHTML = '';
+            if (results.length === 0) {
+                searchResults.innerHTML = '<p class="no-results">No matching foods found</p>';
+                return;
+            }
+
+            results.forEach(food => {
+                const foodItem = document.createElement('div');
+                foodItem.className = 'food-item';
+                foodItem.innerHTML = `
+                    <div class="food-info">
+                        <h4>${food.name}</h4>
+                        <p>${food.serving}</p>
+                        <div class="food-macros">
+                            <span>${food.calories} kcal</span>
+                            <span>P: ${food.protein}g</span>
+                            <span>C: ${food.carbs}g</span>
+                            <span>F: ${food.fats}g</span>
+                        </div>
+                    </div>
+                    <button class="btn primary add-btn" data-id="${food.id}">Add</button>
+                `;
+                searchResults.appendChild(foodItem);
+            });
+
+            document.querySelectorAll('.add-btn').forEach(btn => {
+                btn.addEventListener('click', addToLog);
+            });
+        }
+
+        async function addToLog(e) {
+            if (!checkAuth()) return;
+
+            const foodId = parseInt(e.target.getAttribute('data-id'));
+            const originalText = e.target.textContent;
+            
+            // Show loading state
+            e.target.textContent = 'Adding...';
+            e.target.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/food-log`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        foodId: foodId,
+                        date: today
+                    })
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                    throw new Error('Failed to add food');
+                }
+
+                await loadFoodLog();
+                updateNutritionTotals();
+                
+                // Show success feedback
+                e.target.textContent = 'Added!';
+                e.target.style.background = '#10b981';
+                setTimeout(() => {
+                    e.target.textContent = originalText;
+                    e.target.style.background = '';
+                    e.target.disabled = false;
+                }, 1000);
+            } catch (error) {
+                console.error('Add to log error:', error);
+                alert('Failed to add food to log. Please try again.');
+                e.target.textContent = originalText;
+                e.target.disabled = false;
+            }
+        }
+
+        async function loadFoodLog() {
+            if (!checkAuth()) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/food-log?date=${today}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                    throw new Error('Failed to load food log');
+                }
+
+                const foodLog = await response.json();
+                displayFoodLog(foodLog);
+            } catch (error) {
+                console.error('Load food log error:', error);
+                logItems.innerHTML = '<p class="empty-message">Error loading food log</p>';
+            }
+        }
+
+        function displayFoodLog(foodLog) {
+            logItems.innerHTML = '';
+            
+            if (foodLog.length === 0) {
+                logItems.innerHTML = '<p class="empty-message">No food logged yet today</p>';
+                return;
+            }
+
+            foodLog.forEach(item => {
+                const logItem = document.createElement('div');
+                logItem.className = 'log-item';
+                logItem.innerHTML = `
+                    <div class="log-info">
+                        <h4>${item.name}</h4>
+                        <p>${item.serving}</p>
+                        <div class="log-macros">
+                            <span>${item.calories} kcal</span>
+                            <span>P: ${item.protein}g</span>
+                            <span>C: ${item.carbs}g</span>
+                            <span>F: ${item.fats}g</span>
+                        </div>
+                        <div class="log-time">
+                            <i class="fas fa-clock"></i>
+                            ${new Date(item.logged_at).toLocaleTimeString('en-US', { 
+                                hour: '2-digit', 
+                                minute: '2-digit' 
+                            })}
+                        </div>
+                    </div>
+                    <button class="btn danger remove-btn" data-id="${item.id}">Remove</button>
+                `;
+                logItems.appendChild(logItem);
+            });
+
+            document.querySelectorAll('.remove-btn').forEach(btn => {
+                btn.addEventListener('click', removeFromLog);
+            });
+        }
+
+        async function removeFromLog(e) {
+            if (!checkAuth()) return;
+
+            const logId = e.target.getAttribute('data-id');
+            const originalText = e.target.textContent;
+            
+            // Show loading state
+            e.target.textContent = 'Removing...';
+            e.target.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/food-log/${logId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                    throw new Error('Failed to remove food');
+                }
+
+                await loadFoodLog();
+                updateNutritionTotals();
+            } catch (error) {
+                console.error('Remove from log error:', error);
+                alert('Failed to remove food from log. Please try again.');
+                e.target.textContent = originalText;
+                e.target.disabled = false;
+            }
+        }
+
+        async function updateNutritionTotals() {
+            if (!checkAuth()) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/food-log?date=${today}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) return;
+
+                const foodLog = await response.json();
+                const totals = foodLog.reduce((acc, item) => {
+                    acc.calories += item.calories;
+                    acc.protein += parseFloat(item.protein);
+                    acc.carbs += parseFloat(item.carbs);
+                    acc.fats += parseFloat(item.fats);
+                    return acc;
+                }, { calories: 0, protein: 0, carbs: 0, fats: 0 });
+
+                totalCalories.textContent = totals.calories;
+                totalProtein.textContent = totals.protein.toFixed(1);
+                totalCarbs.textContent = totals.carbs.toFixed(1);
+                totalFats.textContent = totals.fats.toFixed(1);
+            } catch (error) {
+                console.error('Update nutrition totals error:', error);
+            }
+        }
+
+        // Initialize
+        if (checkAuth()) {
+            loadFoodLog();
+            updateNutritionTotals();
+            searchFood(); // Load all foods initially
+        }
+    </script>
+</body>
+</html>

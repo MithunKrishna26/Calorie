@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard - CalorieFit</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        rel="stylesheet"
+    />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet"
+    />
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-apple-alt"></i>
+                    <span>CalorieFit</span>
+                </div>
+            </div>
+
+            <div class="nav-menu">
+                <a href="#" onclick="showHome()" class="nav-item active">
+                    <div class="nav-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <span>Home</span>
+                    <div class="nav-indicator"></div>
+                </a>
+
+                <a href="profile.html" class="nav-item">
+                    <div class="nav-icon">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <span>Profile</span>
+                    <div class="nav-indicator"></div>
+                </a>
+
+                <a href="food.html" class="nav-item">
+                    <div class="nav-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <span>Analysis</span>
+                    <div class="nav-indicator"></div>
+                </a>
+
+                <a href="#" onclick="logout(event)" class="nav-item logout">
+                    <div class="nav-icon">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </div>
+                    <span>Logout</span>
+                    <div class="nav-indicator"></div>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div id="homeSection" class="section active">
+                <div class="section-header">
+                    <h1><i class="fas fa-home"></i> Health Dashboard</h1>
+                    <p>Welcome back! Here's your health summary</p>
+                </div>
+
+                <!-- Profile Info Card -->
+                <div class="profile-info-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-user-circle"></i> Your Profile Information</h2>
+                    </div>
+                    <div class="profile-info-content">
+                        <div class="profile-info-item">
+                            <i class="fas fa-ruler-vertical"></i>
+                            <div>
+                                <h3>Height</h3>
+                                <div class="info-value" id="profileHeightDisplay">-</div>
+                            </div>
+                        </div>
+                        <div class="profile-info-item">
+                            <i class="fas fa-weight"></i>
+                            <div>
+                                <h3>Weight</h3>
+                                <div class="info-value" id="profileWeightDisplay">-</div>
+                            </div>
+                        </div>
+                        <div class="profile-info-item">
+                            <i class="fas fa-birthday-cake"></i>
+                            <div>
+                                <h3>Age</h3>
+                                <div class="info-value" id="profileAgeDisplay">-</div>
+                            </div>
+                        </div>
+                        <div class="profile-info-item">
+                            <i class="fas fa-venus-mars"></i>
+                            <div>
+                                <h3>Gender</h3>
+                                <div class="info-value" id="profileGenderDisplay">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BMI Calculator Card -->
+                <div class="bmi-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-calculator"></i> BMI Analysis</h2>
+                    </div>
+                    <div class="bmi-content">
+                        <div class="bmi-circle">
+                            <div class="bmi-value" id="bmiValue">-</div>
+                            <div class="bmi-label">Your BMI</div>
+                        </div>
+                        <div class="bmi-info">
+                            <div class="bmi-status" id="bmiStatus">Complete your profile</div>
+                            <div class="bmi-description" id="bmiDescription">Body Mass Index analysis</div>
+                        </div>
+                    </div>
+
+                    <div class="expected-bmi">
+                        <h3><i class="fas fa-bullseye"></i> Expected BMI Range</h3>
+                        <div id="expectedBmiRange">Based on your age and gender: -</div>
+                        <div id="bmiDeviation" class="hidden"></div>
+                    </div>
+                </div>
+
+                <!-- Today's Nutrition Summary -->
+                <div class="nutrition-summary-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-chart-pie"></i> Today's Nutrition Summary</h2>
+                        <a href="food.html" class="view-details-btn">View Details</a>
+                    </div>
+                    <div class="nutrition-grid">
+                        <div class="nutrition-card calories">
+                            <div class="card-icon">
+                                <i class="fas fa-fire"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Calories</h3>
+                                <div class="card-value" id="dashboardCalories">0</div>
+                                <div class="card-label">kcal</div>
+                            </div>
+                        </div>
+                        <div class="nutrition-card protein">
+                            <div class="card-icon">
+                                <i class="fas fa-dumbbell"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Protein</h3>
+                                <div class="card-value" id="dashboardProtein">0</div>
+                                <div class="card-label">grams</div>
+                            </div>
+                        </div>
+                        <div class="nutrition-card carbs">
+                            <div class="card-icon">
+                                <i class="fas fa-bread-slice"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Carbs</h3>
+                                <div class="card-value" id="dashboardCarbs">0</div>
+                                <div class="card-label">grams</div>
+                            </div>
+                        </div>
+                        <div class="nutrition-card fats">
+                            <div class="card-icon">
+                                <i class="fas fa-seedling"></i>
+                            </div>
+                            <div class="card-content">
+                                <h3>Fats</h3>
+                                <div class="card-value" id="dashboardFats">0</div>
+                                <div class="card-label">grams</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        const today = new Date().toISOString().split('T')[0];
+
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+
+        async function fetchUserProfile() {
+            if (!checkAuth()) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/user/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = 'index.html';
+                        return;
+                    }
+                    throw new Error('Failed to fetch profile');
+                }
+
+                const user = await response.json();
+
+                if (!user.height || !user.weight || !user.age || !user.gender) {
+                    document.getElementById('bmiStatus').textContent = "Incomplete profile data.";
+                    document.getElementById('bmiDescription').textContent = "Please complete your profile to see BMI analysis.";
+                    return;
+                }
+
+                document.getElementById('profileHeightDisplay').textContent = user.height + ' cm';
+                document.getElementById('profileWeightDisplay').textContent = user.weight + ' kg';
+                document.getElementById('profileAgeDisplay').textContent = user.age;
+                document.getElementById('profileGenderDisplay').textContent = 
+                    user.gender.charAt(0).toUpperCase() + user.gender.slice(1);
+
+                calculateBMI(user.height, user.weight, user.age, user.gender);
+            } catch (err) {
+                console.error("Failed to fetch profile data:", err);
+                document.getElementById('bmiStatus').textContent = "Error loading profile data.";
+            }
+        }
+
+        function calculateBMI(height, weight, age, gender) {
+            const heightM = height / 100;
+            const bmi = weight / (heightM * heightM);
+            const bmiRounded = bmi.toFixed(1);
+            document.getElementById('bmiValue').textContent = bmiRounded;
+
+            let status = '';
+            let statusColor = '';
+            if (bmi < 18.5) {
+                status = 'Underweight';
+                statusColor = '#3b82f6';
+            } else if (bmi < 24.9) {
+                status = 'Normal weight';
+                statusColor = '#10b981';
+            } else if (bmi < 29.9) {
+                status = 'Overweight';
+                statusColor = '#f59e0b';
+            } else {
+                status = 'Obese';
+                statusColor = '#ef4444';
+            }
+
+            const statusElement = document.getElementById('bmiStatus');
+            statusElement.textContent = status;
+            statusElement.style.color = statusColor;
+
+            document.getElementById('bmiDescription').textContent = 
+                `Your BMI indicates you are in the ${status.toLowerCase()} category.`;
+            
+            document.getElementById('expectedBmiRange').textContent = 
+                "Healthy BMI range: 18.5 - 24.9";
+
+            const deviationElement = document.getElementById('bmiDeviation');
+            deviationElement.classList.remove("hidden");
+            
+            if (bmi < 18.5) {
+                const targetWeight = 18.5 * heightM * heightM;
+                const weightDiff = targetWeight - weight;
+                deviationElement.textContent = 
+                    `Consider gaining ${weightDiff.toFixed(1)} kg to reach healthy weight range.`;
+                deviationElement.style.color = '#3b82f6';
+            } else if (bmi > 24.9) {
+                const targetWeight = 24.9 * heightM * heightM;
+                const weightDiff = weight - targetWeight;
+                deviationElement.textContent = 
+                    `Consider losing ${weightDiff.toFixed(1)} kg to reach healthy weight range.`;
+                deviationElement.style.color = '#f59e0b';
+            } else {
+                deviationElement.textContent = "You are in the healthy weight range! 🎉";
+                deviationElement.style.color = '#10b981';
+            }
+        }
+
+        async function loadTodaysNutrition() {
+            if (!checkAuth()) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/api/food-log?date=${today}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) return;
+
+                const foodLog = await response.json();
+                const totals = foodLog.reduce((acc, item) => {
+                    acc.calories += item.calories;
+                    acc.protein += parseFloat(item.protein);
+                    acc.carbs += parseFloat(item.carbs);
+                    acc.fats += parseFloat(item.fats);
+                    return acc;
+                }, { calories: 0, protein: 0, carbs: 0, fats: 0 });
+
+                document.getElementById('dashboardCalories').textContent = totals.calories;
+                document.getElementById('dashboardProtein').textContent = totals.protein.toFixed(1);
+                document.getElementById('dashboardCarbs').textContent = totals.carbs.toFixed(1);
+                document.getElementById('dashboardFats').textContent = totals.fats.toFixed(1);
+            } catch (error) {
+                console.error('Load nutrition error:', error);
+            }
+        }
+
+        function showHome() {
+            document.getElementById("homeSection").classList.add("active");
+        }
+
+        async function logout(event) {
+            if (event) event.preventDefault();
+
+            if (!confirm("Are you sure you want to logout?")) {
+                return false;
+            }
+
+            try {
+                await fetch(`${API_BASE}/logout`, { 
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+            } catch (err) {
+                console.error('Logout request failed:', err);
+            }
+
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+            return false;
+        }
+
+        // Load data on page load
+        window.onload = function() {
+            fetchUserProfile();
+            loadTodaysNutrition();
+        };
+    </script>
+</body>
+</html>

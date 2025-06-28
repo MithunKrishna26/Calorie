@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profile Settings - CalorieFit</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+  <div class="dashboard">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <i class="fas fa-apple-alt"></i>
+          <span>CalorieFit</span>
+        </div>
+      </div>
+      <div class="nav-menu">
+        <a href="dashboard.html" class="nav-item">
+          <div class="nav-icon"><i class="fas fa-home"></i></div>
+          <span>Home</span>
+          <div class="nav-indicator"></div>
+        </a>
+        <a href="profile.html" class="nav-item active">
+          <div class="nav-icon"><i class="fas fa-user-circle"></i></div>
+          <span>Profile</span>
+          <div class="nav-indicator"></div>
+        </a>
+        <a href="food.html" class="nav-item">
+          <div class="nav-icon"><i class="fas fa-chart-line"></i></div>
+          <span>Analysis</span>
+          <div class="nav-indicator"></div>
+        </a>
+        <a href="#" onclick="logout()" class="nav-item logout">
+          <div class="nav-icon"><i class="fas fa-sign-out-alt"></i></div>
+          <span>Logout</span>
+          <div class="nav-indicator"></div>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div id="profileSection" class="section active">
+        <div class="section-header">
+          <h1><i class="fas fa-user-circle"></i> Profile Settings</h1>
+          <p>Manage your personal information</p>
+        </div>
+        
+        <div class="profile-card">
+          <div class="profile-avatar">
+            <i class="fas fa-user-circle"></i>
+          </div>
+          
+          <form id="profileForm" class="profile-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label><i class="fas fa-user"></i> Full Name</label>
+                <input type="text" id="profileName" placeholder="Enter your name" required>
+              </div>
+              
+              <div class="form-group">
+                <label><i class="fas fa-birthday-cake"></i> Age</label>
+                <input type="number" id="profileAge" placeholder="Your age" min="2" max="120" required>
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label><i class="fas fa-venus-mars"></i> Gender</label>
+              <select id="profileGender" required>
+                <option value="">Select gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            
+            <div class="form-row">
+              <div class="form-group">
+                <label><i class="fas fa-ruler-vertical"></i> Height (cm)</label>
+                <input type="number" id="profileHeight" step="0.1" placeholder="170" min="50" max="300" required>
+              </div>
+              
+              <div class="form-group">
+                <label><i class="fas fa-weight"></i> Weight (kg)</label>
+                <input type="number" id="profileWeight" step="0.1" placeholder="70" min="2" max="500" required>
+              </div>
+            </div>
+            
+            <button type="submit" class="btn-primary">
+              <span>Save Profile</span>
+              <i class="fas fa-save"></i>
+            </button>
+          </form>
+        </div>
+        
+        <div id="message" class="notification hidden"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin;
+
+    // Check authentication
+    function checkAuth() {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        window.location.href = 'index.html';
+        return false;
+      }
+      return true;
+    }
+
+    // Load profile data from backend
+    async function loadProfile() {
+      if (!checkAuth()) return;
+
+      try {
+        const response = await fetch(`${API_BASE}/api/user/profile`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+            return;
+          }
+          throw new Error('Failed to load profile');
+        }
+
+        const profileData = await response.json();
+        
+        document.getElementById("profileName").value = profileData.name || "";
+        document.getElementById("profileAge").value = profileData.age || "";
+        document.getElementById("profileGender").value = profileData.gender || "";
+        document.getElementById("profileHeight").value = profileData.height || "";
+        document.getElementById("profileWeight").value = profileData.weight || "";
+      } catch (error) {
+        console.error('Load profile error:', error);
+        showMessage('Failed to load profile data', 'error');
+      }
+    }
+
+    // Save profile data to backend
+    async function saveProfile(e) {
+      e.preventDefault();
+      
+      if (!checkAuth()) return;
+
+      const profileData = {
+        name: document.getElementById("profileName").value,
+        age: parseInt(document.getElementById("profileAge").value),
+        gender: document.getElementById("profileGender").value,
+        height: parseFloat(document.getElementById("profileHeight").value),
+        weight: parseFloat(document.getElementById("profileWeight").value)
+      };
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      
+      // Show loading state
+      submitBtn.innerHTML = '<span>Saving...</span><i class="fas fa-spinner fa-spin"></i>';
+      submitBtn.disabled = true;
+
+      try {
+        const response = await fetch(`${API_BASE}/api/profile`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          },
+          body: JSON.stringify(profileData)
+        });
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+            return;
+          }
+          throw new Error('Failed to save profile');
+        }
+
+        const updatedProfile = await response.json();
+        localStorage.setItem('user', JSON.stringify(updatedProfile));
+        
+        showMessage('✅ Profile saved successfully!', 'success');
+      } catch (error) {
+        console.error('Save profile error:', error);
+        showMessage('❌ Failed to save profile. Please try again.', 'error');
+      } finally {
+        // Reset button state
+        submitBtn.innerHTML = '<span>Save Profile</span><i class="fas fa-save"></i>';
+        submitBtn.disabled = false;
+      }
+    }
+
+    function showMessage(text, type) {
+      const message = document.getElementById("message");
+      message.textContent = text;
+      message.className = `notification notification-${type}`;
+      message.classList.remove("hidden");
+
+      setTimeout(() => {
+        message.classList.add("hidden");
+      }, 3000);
+    }
+
+    // Logout
+    async function logout() {
+      if (confirm("Are you sure you want to logout?")) {
+        try {
+          await fetch(`${API_BASE}/logout`, { 
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
+          });
+        } catch (err) {
+          console.error('Logout request failed:', err);
+        }
+
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        window.location.href = "index.html";
+      }
+    }
+
+    // Initialize
+    document.addEventListener("DOMContentLoaded", loadProfile);
+    document.getElementById("profileForm").addEventListener("submit", saveProfile);
+  </script>
+</body>
+</html>

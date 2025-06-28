@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Nutrition Assistant - CalorieFit</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        rel="stylesheet"
+    />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet"
+    />
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-apple-alt"></i>
+                    <span>CalorieFit</span>
+                </div>
+            </div>
+
+            <div class="nav-menu">
+                <a href="dashboard.html" class="nav-item">
+                    <div class="nav-icon">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <span>Home</span>
+                    <div class="nav-indicator"></div>
+                </a>
+
+                <a href="profile.html" class="nav-item">
+                    <div class="nav-icon">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <span>Profile</span>
+                    <div class="nav-indicator"></div>
+                </a>
+
+                <a href="food.html" class="nav-item">
+                    <div class="nav-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <span>Analysis</span>
+                    <div class="nav-indicator"></div>
+                </a>
+
+                <a href="activity.html" class="nav-item">
+                    <div class="nav-icon">
+                        <i class="fas fa-dumbbell"></i>
+                    </div>
+                    <span>Activity</span>
+                    <div class="nav-indicator"></div>
+                </a>
+
+                <a href="goals.html" class="nav-item">
+                    <div class="nav-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <span>Goals</span>
+                    <div class="nav-indicator"></div>
+                </a>
+
+                <a href="journal.html" class="nav-item">
+                    <div class="nav-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <span>Journal</span>
+                    <div class="nav-indicator"></div>
+                </a>
+
+                <a href="community.html" class="nav-item">
+                    <div class="nav-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <span>Community</span>
+                    <div class="nav-indicator"></div>
+                </a>
+
+                <a href="#" class="nav-item active">
+                    <div class="nav-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <span>AI Assistant</span>
+                    <div class="nav-indicator"></div>
+                </a>
+
+                <a href="#" onclick="logout(event)" class="nav-item logout">
+                    <div class="nav-icon">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </div>
+                    <span>Logout</span>
+                    <div class="nav-indicator"></div>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="section active">
+                <div class="section-header">
+                    <h1><i class="fas fa-robot"></i> AI Nutrition Assistant</h1>
+                    <p>Get personalized nutrition and fitness advice from our AI assistant</p>
+                </div>
+
+                <div class="chatbot-container">
+                    <div class="chat-header">
+                        <div class="chat-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="chat-info">
+                            <h3>CalorieFit AI</h3>
+                            <p>Nutrition & Fitness Expert</p>
+                        </div>
+                        <div class="chat-status">
+                            <span class="status-dot online"></span>
+                            Online
+                        </div>
+                    </div>
+
+                    <div class="chat-messages" id="chatMessages">
+                        <div class="message bot-message">
+                            <div class="message-avatar">
+                                <i class="fas fa-robot"></i>
+                            </div>
+                            <div class="message-content">
+                                <p>Hello! I'm your AI nutrition assistant. I can help you with:</p>
+                                <ul>
+                                    <li>Meal recommendations and planning</li>
+                                    <li>Workout tips and exercise advice</li>
+                                    <li>Nutrition questions and guidance</li>
+                                    <li>Calorie and macronutrient information</li>
+                                    <li>General health and wellness tips</li>
+                                </ul>
+                                <p>What would you like to know about today?</p>
+                            </div>
+                            <div class="message-time">Just now</div>
+                        </div>
+                    </div>
+
+                    <div class="chat-input-container">
+                        <div class="chat-input-wrapper">
+                            <input 
+                                type="text" 
+                                id="messageInput" 
+                                placeholder="Ask me about nutrition, workouts, or health advice..."
+                                maxlength="500"
+                            />
+                            <button id="sendMessage" class="send-btn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <div class="quick-actions">
+                            <button class="quick-action-btn" onclick="sendQuickMessage('What should I eat for breakfast?')">
+                                <i class="fas fa-sun"></i>
+                                Breakfast Ideas
+                            </button>
+                            <button class="quick-action-btn" onclick="sendQuickMessage('How many calories should I eat?')">
+                                <i class="fas fa-calculator"></i>
+                                Calorie Advice
+                            </button>
+                            <button class="quick-action-btn" onclick="sendQuickMessage('What exercises should I do?')">
+                                <i class="fas fa-dumbbell"></i>
+                                Workout Tips
+                            </button>
+                            <button class="quick-action-btn" onclick="sendQuickMessage('How much protein do I need?')">
+                                <i class="fas fa-seedling"></i>
+                                Protein Guide
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        let chatHistory = [];
+
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'index.html';
+                return false;
+            }
+            return true;
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!checkAuth()) return;
+            loadChatHistory();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendMessage');
+
+            messageInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            sendButton.addEventListener('click', sendMessage);
+        }
+
+        function sendQuickMessage(message) {
+            document.getElementById('messageInput').value = message;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+
+            if (!message) return;
+
+            // Add user message to chat
+            addMessageToChat('user', message);
+            messageInput.value = '';
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            try {
+                const response = await fetch(`${API_BASE}/api/chatbot`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Remove typing indicator and add bot response
+                    removeTypingIndicator();
+                    addMessageToChat('bot', data.response);
+                } else {
+                    throw new Error(data.error || 'Failed to get response');
+                }
+            } catch (error) {
+                console.error('Chatbot error:', error);
+                removeTypingIndicator();
+                addMessageToChat('bot', 'Sorry, I encountered an error. Please try again.');
+            }
+        }
+
+        function addMessageToChat(sender, message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            if (sender === 'user') {
+                messageDiv.innerHTML = `
+                    <div class="message-content">
+                        <p>${escapeHtml(message)}</p>
+                    </div>
+                    <div class="message-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="message-time">${time}</div>
+                `;
+            } else {
+                messageDiv.innerHTML = `
+                    <div class="message-avatar">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <p>${escapeHtml(message)}</p>
+                    </div>
+                    <div class="message-time">${time}</div>
+                `;
+            }
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            // Store in history
+            chatHistory.push({ sender, message, time });
+        }
+
+        function showTypingIndicator() {
+            const chatMessages = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot-message typing-indicator';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        async function loadChatHistory() {
+            try {
+                const response = await fetch(`${API_BASE}/api/chatbot/history`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const history = await response.json();
+                    // Load recent history (last 10 messages)
+                    const recentHistory = history.slice(0, 10).reverse();
+                    
+                    recentHistory.forEach(conv => {
+                        addMessageToChat('user', conv.message);
+                        addMessageToChat('bot', conv.response);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load chat history:', error);
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function logout(event) {
+            event.preventDefault();
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html> 
