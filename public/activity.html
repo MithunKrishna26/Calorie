@@ -257,6 +257,7 @@
             loadActivityCalendar();
             loadTodayActivities();
             loadMonthlyStats();
+            debugStats();
             setupEventListeners();
             renderCalendar();
             updateTodayDate();
@@ -324,6 +325,8 @@
                 return;
             }
 
+            console.log('Logging activity with date:', date);
+
             try {
                 const response = await fetch(`${API_BASE}/api/activity-log`, {
                     method: 'POST',
@@ -362,6 +365,7 @@
         }
 
         async function loadTodayActivities() {
+            // Use the selected date directly without timezone conversion
             const today = selectedDate.toISOString().split('T')[0];
             console.log('Loading activities for date:', today);
             
@@ -409,6 +413,7 @@
         }
 
         function updateStatsDisplay(stats) {
+            console.log('Updating stats display with:', stats);
             document.getElementById('totalCalories').textContent = stats.totalCalories || 0;
             document.getElementById('totalTime').textContent = formatTime(stats.totalMinutes || 0);
             document.getElementById('workoutDays').textContent = stats.workoutDays || 0;
@@ -584,6 +589,28 @@
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = 'index.html';
+        }
+
+        // Debug function to test stats
+        async function debugStats() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth() + 1;
+            console.log('Debug: Testing stats for', year, month);
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/debug/activity-logs`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (response.ok) {
+                    const debugData = await response.json();
+                    console.log('Debug data:', debugData);
+                }
+            } catch (error) {
+                console.error('Debug error:', error);
+            }
         }
     </script>
 </body>
