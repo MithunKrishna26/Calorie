@@ -250,13 +250,12 @@
         document.addEventListener('DOMContentLoaded', function() {
             if (!checkAuth()) return;
             
-            // Set today's date without timezone conversion
+            // Set today's date as YYYY-MM-DD
             const today = new Date();
             const year = today.getFullYear();
             const month = String(today.getMonth() + 1).padStart(2, '0');
             const day = String(today.getDate()).padStart(2, '0');
             const formattedToday = `${year}-${month}-${day}`;
-            
             document.getElementById('activityDate').value = formattedToday;
             loadActivities();
             loadActivityCalendar();
@@ -324,14 +323,13 @@
             const date = document.getElementById('activityDate').value;
             const notes = document.getElementById('activityNotes').value;
 
-            console.log('Form data:', { activityId, durationMinutes, date, notes });
+            // Debug log for date
+            console.log('Date being sent to backend (should be YYYY-MM-DD):', date);
 
             if (!activityId || !durationMinutes || !date) {
                 alert('Please fill in all required fields');
                 return;
             }
-
-            console.log('Logging activity with date:', date);
 
             try {
                 const requestBody = {
@@ -340,8 +338,6 @@
                     date: date,
                     notes: notes
                 };
-
-                console.log('Request body:', requestBody);
 
                 const response = await fetch(`${API_BASE}/api/activity-log`, {
                     method: 'POST',
@@ -352,18 +348,19 @@
                     body: JSON.stringify(requestBody)
                 });
 
-                console.log('Response status:', response.status);
-
                 if (response.ok) {
                     const result = await response.json();
-                    console.log('Activity logged successfully:', result);
-                    
                     // Reset form properly
                     document.getElementById('activitySelect').value = '';
                     document.getElementById('durationInput').value = '';
                     document.getElementById('activityNotes').value = '';
-                    document.getElementById('activityDate').value = new Date().toISOString().split('T')[0];
-                    
+                    // Reset to today's date in YYYY-MM-DD
+                    const today = new Date();
+                    const year = today.getFullYear();
+                    const month = String(today.getMonth() + 1).padStart(2, '0');
+                    const day = String(today.getDate()).padStart(2, '0');
+                    const formattedToday = `${year}-${month}-${day}`;
+                    document.getElementById('activityDate').value = formattedToday;
                     // Reload data
                     loadTodayActivities();
                     loadActivityCalendar();
@@ -371,11 +368,9 @@
                     showNotification('Activity logged successfully!', 'success');
                 } else {
                     const errorData = await response.json();
-                    console.error('Server error:', errorData);
                     throw new Error(errorData.error || 'Failed to log activity');
                 }
             } catch (error) {
-                console.error('Activity logging error:', error);
                 showNotification('Failed to log activity. Please try again.', 'error');
             }
         }
@@ -540,12 +535,11 @@
 
         function selectDate(date) {
             selectedDate = date;
-            // Format date as YYYY-MM-DD without timezone conversion
+            // Always format as YYYY-MM-DD
             const year = date.getFullYear();
             const month = String(date.getMonth() + 1).padStart(2, '0');
             const day = String(date.getDate()).padStart(2, '0');
             const formattedDate = `${year}-${month}-${day}`;
-            
             document.getElementById('activityDate').value = formattedDate;
             renderCalendar();
             loadTodayActivities();
