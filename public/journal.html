@@ -113,6 +113,37 @@
             color: #333;
             margin-top: 0.5rem;
         }
+        /* --- Add/override for beautiful checkbox alignment --- */
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            margin-bottom: 0.5rem;
+        }
+        .checkbox-label input[type="checkbox"] {
+            accent-color: #764ba2;
+            width: 1.2em;
+            height: 1.2em;
+            margin-right: 0.5em;
+            margin-left: 0;
+            vertical-align: middle;
+        }
+        .checkbox-label .checkmark {
+            display: none;
+        }
+        .journal-form .form-group {
+            margin-bottom: 1.2rem;
+        }
+        .add-entry-card {
+            margin-bottom: 2.5rem;
+            box-shadow: 0 4px 24px rgba(80,80,160,0.10);
+            border-radius: 1.25rem;
+            background: #fff;
+            padding: 2rem 1.5rem;
+        }
     </style>
 </head>
 <body>
@@ -348,12 +379,10 @@
 
         async function addJournalEntry(event) {
             event.preventDefault();
-
             const title = document.getElementById('entryTitle').value;
             const content = document.getElementById('entryContent').value;
             const entryType = document.getElementById('entryType').value;
             const isPublic = document.getElementById('isPublic').checked;
-
             try {
                 const response = await fetch(`${API_BASE}/api/journal`, {
                     method: 'POST',
@@ -368,7 +397,6 @@
                         isPublic: isPublic
                     })
                 });
-
                 if (response.ok) {
                     event.target.reset();
                     loadJournalEntries();
