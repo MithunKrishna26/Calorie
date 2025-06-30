@@ -198,13 +198,62 @@ async function initDatabase() {
         { name: "Lentils", calories: 116, protein: 9, carbs: 20, fats: 0.4, serving: "100g cooked" },
         { name: "Cottage Cheese", calories: 98, protein: 11, carbs: 3.4, fats: 4.3, serving: "100g" },
         { name: "Turkey Breast", calories: 135, protein: 30, carbs: 0, fats: 1, serving: "100g" },
-        { name: "Blueberries", calories: 57, protein: 0.7, carbs: 14, fats: 0.3, serving: "100g" },
+        { name: "Orange", calories: 62, protein: 1.2, carbs: 15.4, fats: 0.2, serving: "1 medium (131g)" },
+        { name: "Strawberries", calories: 49, protein: 1, carbs: 12, fats: 0.5, serving: "1 cup (152g)" },
+        { name: "Blueberries", calories: 84, protein: 1.1, carbs: 21, fats: 0.5, serving: "1 cup (148g)" },
+        { name: "Carrot", calories: 25, protein: 0.6, carbs: 6, fats: 0.1, serving: "1 medium (61g)" },
+        { name: "Potato", calories: 161, protein: 4.3, carbs: 36.6, fats: 0.2, serving: "1 large (299g)" },
+        { name: "Whole Wheat Bread", calories: 69, protein: 3.6, carbs: 12, fats: 1.1, serving: "1 slice (28g)" },
+        { name: "Peanut Butter", calories: 188, protein: 8, carbs: 6, fats: 16, serving: "2 tbsp (32g)" },
+        { name: "Cheddar Cheese", calories: 113, protein: 7, carbs: 0.4, fats: 9, serving: "1 slice (28g)" },
+        { name: "Milk (2%)", calories: 122, protein: 8, carbs: 12, fats: 5, serving: "1 cup (244g)" },
+        { name: "Orange Juice", calories: 112, protein: 1.7, carbs: 26, fats: 0.5, serving: "1 cup (248g)" },
+        { name: "Coffee (black)", calories: 2, protein: 0.3, carbs: 0, fats: 0, serving: "1 cup (240g)" },
+        { name: "Butter", calories: 102, protein: 0.1, carbs: 0, fats: 11.5, serving: "1 tbsp (14g)" },
+        { name: "Olive Oil", calories: 119, protein: 0, carbs: 0, fats: 14, serving: "1 tbsp (14g)" },
+        { name: "Granola Bar", calories: 132, protein: 2.6, carbs: 23, fats: 3.5, serving: "1 bar (24g)" },
+        { name: "Pizza (cheese)", calories: 285, protein: 12, carbs: 36, fats: 10, serving: "1 slice (107g)" },
+        { name: "Burger (beef)", calories: 354, protein: 17, carbs: 29, fats: 20, serving: "1 sandwich (100g)" },
+        { name: "French Fries", calories: 365, protein: 3.4, carbs: 63, fats: 17, serving: "1 medium (117g)" },
+        { name: "Soda (cola)", calories: 150, protein: 0, carbs: 39, fats: 0, serving: "1 can (355ml)" },
+        { name: "Ice Cream (vanilla)", calories: 137, protein: 2.3, carbs: 16, fats: 7, serving: "1/2 cup (66g)" },
+        { name: "Chocolate Bar", calories: 210, protein: 2, carbs: 25, fats: 13, serving: "1 bar (43g)" },
+        { name: "Trail Mix", calories: 175, protein: 4, carbs: 15, fats: 11, serving: "1 oz (28g)" },
+        { name: "Protein Shake", calories: 120, protein: 24, carbs: 3, fats: 1, serving: "1 scoop (30g)" },
+        { name: "Tofu", calories: 76, protein: 8, carbs: 1.9, fats: 4.8, serving: "100g" },
+        { name: "Paneer", calories: 265, protein: 18, carbs: 6, fats: 20, serving: "100g" },
+        { name: "Dosa", calories: 133, protein: 2.7, carbs: 18, fats: 5, serving: "1 dosa (50g)" },
+        { name: "Idli", calories: 39, protein: 1.6, carbs: 7.4, fats: 0.2, serving: "1 idli (30g)" },
+        { name: "Sambar", calories: 50, protein: 2, carbs: 8, fats: 1, serving: "100g" },
+        { name: "Chana Masala", calories: 210, protein: 10, carbs: 35, fats: 4, serving: "1 cup (200g)" },
+        { name: "Rajma", calories: 120, protein: 8, carbs: 22, fats: 0.5, serving: "100g" },
+        { name: "Chapati", calories: 104, protein: 3, carbs: 18, fats: 2, serving: "1 chapati (35g)" },
+        { name: "Curd (plain)", calories: 61, protein: 3.5, carbs: 4.7, fats: 3.3, serving: "100g" },
+        { name: "Biryani", calories: 290, protein: 6, carbs: 45, fats: 8, serving: "1 cup (200g)" },
+        { name: "Samosa", calories: 132, protein: 2, carbs: 17, fats: 6, serving: "1 piece (40g)" },
+        { name: "Upma", calories: 192, protein: 5, carbs: 32, fats: 5, serving: "1 cup (155g)" },
+        { name: "Poha", calories: 180, protein: 3, carbs: 32, fats: 4, serving: "1 cup (120g)" },
+        { name: "Maggi Noodles", calories: 205, protein: 4, carbs: 27, fats: 9, serving: "1 pack (70g)" },
+        { name: "Pav Bhaji", calories: 400, protein: 8, carbs: 50, fats: 18, serving: "1 plate (250g)" },
+        { name: "Vada Pav", calories: 197, protein: 4, carbs: 32, fats: 6, serving: "1 piece (100g)" },
+        { name: "Dhokla", calories: 187, protein: 7, carbs: 32, fats: 6, serving: "1 plate (100g)" },
+        { name: "Lassi", calories: 154, protein: 6, carbs: 24, fats: 4, serving: "1 glass (250ml)" },
+        { name: "Paneer Butter Masala", calories: 350, protein: 12, carbs: 14, fats: 28, serving: "1 cup (200g)" },
+        { name: "Butter Chicken", calories: 438, protein: 30, carbs: 14, fats: 30, serving: "1 cup (200g)" },
+        { name: "Fish Curry", calories: 180, protein: 22, carbs: 6, fats: 7, serving: "1 cup (150g)" },
+        { name: "Egg Curry", calories: 210, protein: 13, carbs: 8, fats: 14, serving: "1 egg (100g)" },
+        { name: "Dal Tadka", calories: 180, protein: 9, carbs: 27, fats: 3, serving: "1 cup (200g)" },
+        { name: "Aloo Paratha", calories: 210, protein: 4, carbs: 36, fats: 6, serving: "1 paratha (80g)" },
+        { name: "Gulab Jamun", calories: 150, protein: 2, carbs: 30, fats: 5, serving: "1 piece (50g)" },
+        { name: "Rasgulla", calories: 125, protein: 3, carbs: 28, fats: 2, serving: "1 piece (50g)" },
+        { name: "Jalebi", calories: 150, protein: 1, carbs: 36, fats: 0.5, serving: "2 pieces (44g)" },
+        { name: "Kheer", calories: 235, protein: 6, carbs: 40, fats: 6, serving: "1 cup (150g)" },
+        { name: "Falooda", calories: 300, protein: 4, carbs: 50, fats: 8, serving: "1 glass (250ml)" },
       ]
-
       for (const food of sampleFoods) {
         await pool.query(
           "INSERT INTO foods (name, calories, protein, carbs, fats, serving) VALUES ($1, $2, $3, $4, $5, $6)",
-          [food.name, food.calories, food.protein, food.carbs, food.fats, food.serving],
+          [food.name, food.calories, food.protein, food.carbs, food.fats, food.serving]
         )
       }
     }
@@ -470,37 +519,13 @@ app.get("/api/foods/search", async (req, res) => {
     const { q } = req.query
     let query = "SELECT * FROM foods"
     let params = []
-
     if (q && q.trim()) {
       query += " WHERE LOWER(name) LIKE LOWER($1)"
       params = [`%${q.trim()}%`]
     }
-
     query += " ORDER BY name LIMIT 50"
-
     const result = await pool.query(query, params)
-    let foods = result.rows
-
-    // If not enough local results, fetch from Open Food Facts
-    if (foods.length < 10 && q && q.trim()) {
-      const apiUrl = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=20`;
-      const apiRes = await fetch(apiUrl);
-      const apiData = await apiRes.json();
-      if (apiData.products) {
-        const extFoods = apiData.products.map(p => ({
-          name: p.product_name || p.generic_name || p.brands || "Unknown",
-          calories: p.nutriments?.['energy-kcal_100g'] || null,
-          protein: p.nutriments?.['proteins_100g'] || null,
-          carbs: p.nutriments?.['carbohydrates_100g'] || null,
-          fats: p.nutriments?.['fat_100g'] || null,
-          serving: p.serving_size || "100g"
-        })).filter(f => f.name && f.calories !== null)
-        // Deduplicate by name
-        const allFoods = [...foods, ...extFoods.filter(ef => !foods.some(lf => lf.name.toLowerCase() === ef.name.toLowerCase()))]
-        return res.json(allFoods.slice(0, 50))
-      }
-    }
-    res.json(foods)
+    res.json(result.rows)
   } catch (error) {
     console.error("Food search error:", error)
     res.status(500).json({ error: "Internal server error" })
