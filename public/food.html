@@ -39,10 +39,11 @@
             
             <section class="food-log">
                 <div class="card-header">
-                    <h2><i class="fas fa-utensils"></i> Today's Food Log</h2>
+                    <h2><i class="fas fa-utensils"></i> Food Log</h2>
                     <div class="date-display">
-                        <i class="fas fa-calendar-day"></i>
-                        <span id="current-date"></span>
+                        <button id="prevDay" class="date-nav-btn"><i class="fas fa-chevron-left"></i></button>
+                        <input type="date" id="log-date-picker" style="width: 140px; margin: 0 0.5rem;" />
+                        <button id="nextDay" class="date-nav-btn"><i class="fas fa-chevron-right"></i></button>
                     </div>
                 </div>
                 <div id="log-items" class="log-items">
@@ -169,7 +170,7 @@
 
     <script>
         const API_BASE = window.location.origin;
-        const today = new Date().toISOString().split('T')[0];
+        let selectedDate = new Date();
 
         // Check authentication
         function checkAuth() {
@@ -192,11 +193,37 @@
         const totalFats = document.getElementById('total-fats');
 
         // Display current date
-        document.getElementById('current-date').textContent = new Date().toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
+        function formatDateString(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+        function updateDateDisplay() {
+            const dateInput = document.getElementById('log-date-picker');
+            dateInput.value = formatDateString(selectedDate);
+            document.getElementById('current-date').textContent = selectedDate.toLocaleDateString('en-US', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+        }
+        document.getElementById('prevDay').addEventListener('click', () => {
+            selectedDate.setDate(selectedDate.getDate() - 1);
+            updateDateDisplay();
+            loadFoodLog();
+            updateNutritionTotals();
+        });
+        document.getElementById('nextDay').addEventListener('click', () => {
+            selectedDate.setDate(selectedDate.getDate() + 1);
+            updateDateDisplay();
+            loadFoodLog();
+            updateNutritionTotals();
+        });
+        document.getElementById('log-date-picker').addEventListener('change', (e) => {
+            const [year, month, day] = e.target.value.split('-').map(Number);
+            selectedDate = new Date(year, month - 1, day);
+            updateDateDisplay();
+            loadFoodLog();
+            updateNutritionTotals();
         });
 
         // Event listeners
@@ -292,7 +319,7 @@
                     },
                     body: JSON.stringify({
                         foodId: foodId,
-                        date: today
+                        date: formatDateString(selectedDate)
                     })
                 });
 
@@ -328,7 +355,7 @@
             if (!checkAuth()) return;
 
             try {
-                const response = await fetch(`${API_BASE}/api/food-log?date=${today}`, {
+                const response = await fetch(`${API_BASE}/api/food-log?date=${formatDateString(selectedDate)}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -431,7 +458,7 @@
             if (!checkAuth()) return;
 
             try {
-                const response = await fetch(`${API_BASE}/api/food-log?date=${today}`, {
+                const response = await fetch(`${API_BASE}/api/food-log?date=${formatDateString(selectedDate)}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -458,6 +485,7 @@
         }
 
         // Initialize
+        updateDateDisplay();
         if (checkAuth()) {
             loadFoodLog();
             updateNutritionTotals();
