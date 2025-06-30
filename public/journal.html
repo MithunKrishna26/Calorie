@@ -292,11 +292,6 @@
                 </div>
 
                 <div class="journal-container">
-                    <!-- Add a message and button if the user's profile is not public -->
-                    <div id="profilePublicMsg" style="display:none; margin-bottom:1.5rem; background:#fef3c7; color:#92400e; padding:1rem 2rem; border-radius:1rem; text-align:center; font-weight:500;">
-                        Your profile is private. Public journal entries will not appear in the community. <button id="makeProfilePublic" class="btn-primary" style="margin-left:1rem;">Make Profile Public</button>
-                    </div>
-
                     <!-- Add New Entry -->
                     <div class="add-entry-card">
                         <div class="card-header">
@@ -434,7 +429,6 @@
             if (!checkAuth()) return;
             loadJournalEntries();
             setupEventListeners();
-            checkProfilePublic();
         });
 
         function setupEventListeners() {
@@ -673,23 +667,6 @@
             if (event.target === modal) {
                 closeEditModal();
             }
-        }
-
-        // On page load, check if profile is public
-        async function checkProfilePublic() {
-            try {
-                const res = await fetch(`${API_BASE}/api/profile`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
-                if (!res.ok) return;
-                const user = await res.json();
-                if (!user.profile_public) {
-                    document.getElementById('profilePublicMsg').style.display = '';
-                    document.getElementById('makeProfilePublic').onclick = async function() {
-                        await fetch(`${API_BASE}/api/profile/public`, { method: 'PUT', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
-                        document.getElementById('profilePublicMsg').style.display = 'none';
-                        showNotification('Your profile is now public!', 'success');
-                    }
-                }
-            } catch {}
         }
     </script>
 </body>
