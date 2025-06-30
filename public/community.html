@@ -61,6 +61,7 @@
                     <p>See what others are sharing! Browse public journal entries and connect with the CalorieFit community.</p>
                 </div>
                 <div id="communityEntries" class="community-grid"></div>
+                <button id="reloadCommunity" class="btn-primary" style="margin: 1rem auto; display: block;">Reload Community</button>
             </div>
         </main>
     </div>
@@ -190,6 +191,8 @@
         document.addEventListener('DOMContentLoaded', function() {
             fetchCommunityEntries();
         });
+        document.getElementById('reloadCommunity').addEventListener('click', fetchCommunityEntries);
+        window.addEventListener('focus', fetchCommunityEntries);
         async function fetchCommunityEntries() {
             const container = document.getElementById('communityEntries');
             container.innerHTML = '<div>Loading community entries...</div>';
@@ -201,15 +204,15 @@
                     return;
                 }
                 container.innerHTML = entries.map(entry => `
-                    <div class="community-card" onclick="showUserModal(${entry.user_id})" style="cursor:pointer;">
+                    <div class="community-card" onclick="showUserModal(${entry.user_id})">
                         <div class="community-author">
-                            <div class="community-avatar">${(entry.author_name||'U')[0]}</div>
+                            <div class="community-avatar">${entry.author_name ? entry.author_name[0].toUpperCase() : '?'}</div>
                             <div>
                                 <div class="community-title">${entry.title}</div>
-                                <div class="community-meta">by ${entry.author_name || 'Unknown'} &bull; ${new Date(entry.created_at).toLocaleDateString()}</div>
-                                <div class="community-type">${entry.entry_type.replace('_',' ')}</div>
+                                <div class="community-meta">by ${entry.author_name || 'Anonymous'} &bull; ${new Date(entry.created_at).toLocaleDateString()}</div>
                             </div>
                         </div>
+                        <div class="community-type">${entry.entry_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</div>
                         <div class="community-content">${entry.content.length > 200 ? entry.content.substring(0, 200) + '...' : entry.content}</div>
                     </div>
                 `).join('');
