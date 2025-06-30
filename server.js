@@ -525,7 +525,27 @@ app.get("/api/foods/search", async (req, res) => {
     }
     query += " ORDER BY name LIMIT 50"
     const result = await pool.query(query, params)
-    res.json(result.rows)
+    if (result.rows.length > 0) {
+      return res.json(result.rows)
+    }
+    // If no local results, fetch from Open Food Facts
+    if (q && q.trim()) {
+      const apiUrl = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(q)}&search_simple=1&action=process&json=1&page_size=20`;
+      const apiRes = await fetch(apiUrl);
+      const apiData = await apiRes.json();
+      if (apiData.products) {
+        const extFoods = apiData.products.map(p => ({
+          name: p.product_name || p.generic_name || p.brands || "Unknown",
+          calories: p.nutriments?.['energy-kcal_100g'] || null,
+          protein: p.nutriments?.['proteins_100g'] || null,
+          carbs: p.nutriments?.['carbohydrates_100g'] || null,
+          fats: p.nutriments?.['fat_100g'] || null,
+          serving: p.serving_size || "100g"
+        })).filter(f => f.name && f.calories !== null)
+        return res.json(extFoods)
+      }
+    }
+    res.json([])
   } catch (error) {
     console.error("Food search error:", error)
     res.status(500).json({ error: "Internal server error" })
