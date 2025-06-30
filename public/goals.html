@@ -137,8 +137,12 @@
                             </div>
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="targetValue">Target Days</label>
-                                    <input type="number" id="targetValue" step="1" placeholder="Enter target days">
+                                    <label for="targetValue">Target Value</label>
+                                    <input type="number" id="targetValue" step="0.1" placeholder="Enter target value">
+                                </div>
+                                <div class="form-group">
+                                    <label for="targetDate">Target Date (optional)</label>
+                                    <input type="date" id="targetDate">
                                 </div>
                             </div>
                             <button type="submit" class="btn-primary">
@@ -214,6 +218,7 @@
             const goalType = document.getElementById('goalType').value;
             const goalNameInput = document.getElementById('goalName');
             const targetValueInput = document.getElementById('targetValue');
+            const targetDateInput = document.getElementById('targetDate');
 
             // Set default names based on goal type
             const defaultNames = {
@@ -246,6 +251,7 @@
             };
 
             targetValueInput.placeholder = placeholders[goalType] || 'Enter target value';
+            targetDateInput.value = '';
         }
 
         async function addGoal(event) {
@@ -254,6 +260,7 @@
             const goalType = document.getElementById('goalType').value;
             const goalName = document.getElementById('goalName').value;
             const targetValue = document.getElementById('targetValue').value;
+            const targetDate = document.getElementById('targetDate').value;
 
             if (!goalType || !goalName) {
                 alert('Please fill in all required fields');
@@ -270,7 +277,8 @@
                     body: JSON.stringify({
                         goalType: goalType,
                         goalName: goalName,
-                        targetValue: targetValue ? parseFloat(targetValue) : null
+                        targetValue: targetValue ? parseFloat(targetValue) : null,
+                        targetDate: targetDate ? new Date(targetDate).toISOString().split('T')[0] : null
                     })
                 });
 
@@ -332,8 +340,11 @@
                         <span class="progress-text">${goal.current_value || 0} / ${goal.target_value || '∞'}</span>
                     </div>
                     <div class="goal-actions">
-                        <button onclick="incrementGoalProgress(${goal.id}, ${goal.current_value || 0})" class="btn-increment" title="Increment Progress" ${goal.is_completed ? 'disabled' : ''}>
+                        <button onclick="incrementGoalProgress(${goal.id}, ${goal.current_value || 0}, 1)" class="btn-increment" title="Increment by 1" ${goal.is_completed ? 'disabled' : ''}>
                             <i class="fas fa-plus"></i>
+                        </button>
+                        <button onclick="promptCustomIncrement(${goal.id}, ${goal.current_value || 0})" class="btn-custom-increment" title="Add custom value" ${goal.is_completed ? 'disabled' : ''}>
+                            <span style='font-size:1.2em;'>📝</span>
                         </button>
                         <button onclick="deleteGoal(${goal.id})" class="btn-delete" title="Delete Goal">
                             <i class="fas fa-trash"></i>
@@ -426,7 +437,7 @@
             `).join('');
         }
 
-        async function incrementGoalProgress(goalId, currentValue) {
+        async function incrementGoalProgress(goalId, currentValue, increment) {
             try {
                 const response = await fetch(`${API_BASE}/api/goals/${goalId}`, {
                     method: 'PUT',
@@ -435,13 +446,13 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify({
-                        currentValue: (currentValue || 0) + 1,
+                        currentValue: (currentValue || 0) + (increment || 1),
                         isCompleted: false
                     })
                 });
                 if (response.ok) {
                     loadGoals();
-                    showNotification('Goal progress incremented!', 'success');
+                    showNotification('Goal progress updated!', 'success');
                 } else {
                     const data = await response.json();
                     throw new Error(data.error || 'Failed to update goal');
@@ -450,6 +461,12 @@
                 console.error('Goal update error:', error);
                 showNotification('Failed to update goal. Please try again.', 'error');
             }
+        }
+
+        function promptCustomIncrement(goalId, currentValue) {
+            const value = prompt('Enter the value to add to your progress:');
+            if (value === null || value === '' || isNaN(value)) return;
+            incrementGoalProgress(goalId, currentValue, parseFloat(value));
         }
 
         async function deleteGoal(goalId) {
@@ -654,6 +671,9 @@
             cursor: pointer;
             transition: background 0.2s;
             box-shadow: 0 2px 8px rgba(67,233,123,0.10);
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .btn-increment:disabled {
             background: #b7eacb;
@@ -661,6 +681,30 @@
         }
         .btn-increment:hover:not(:disabled) {
             background: #38f9d7;
+        }
+        .btn-custom-increment {
+            background: #f7e8ff;
+            color: #764ba2;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 0.5rem 1rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            box-shadow: 0 2px 8px rgba(118,75,162,0.08);
+            margin-left: 0.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .btn-custom-increment:disabled {
+            background: #e2e8f0;
+            color: #bdbdbd;
+            cursor: not-allowed;
+        }
+        .btn-custom-increment:hover:not(:disabled) {
+            background: #764ba2;
+            color: #fff;
         }
         .btn-delete {
             background: #fff0f0;
