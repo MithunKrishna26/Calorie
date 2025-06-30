@@ -257,22 +257,25 @@
             if (e.key === 'Enter') searchFood();
         });
 
+        window.onerror = function(message, source, lineno, colno, error) {
+            alert('JS Error: ' + message + '\n' + source + ':' + lineno);
+            console.error('Global JS Error:', message, source, lineno, colno, error);
+        };
+
         async function searchFood() {
             if (!checkAuth()) return;
-
             const query = foodSearch.value.trim();
-            
+            console.log('Searching for:', query);
             // Show loading state
             searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
             searchBtn.disabled = true;
-
             try {
                 const response = await fetch(`${API_BASE}/api/foods/search?q=${encodeURIComponent(query)}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
+                console.log('Search response status:', response.status);
                 if (!response.ok) {
                     if (response.status === 401) {
                         localStorage.removeItem('token');
@@ -281,8 +284,8 @@
                     }
                     throw new Error('Search failed');
                 }
-
                 const results = await response.json();
+                console.log('Search results:', results);
                 displayResults(results);
             } catch (error) {
                 console.error('Search error:', error);
@@ -328,12 +331,12 @@
         async function addToLog(e) {
             if (!checkAuth()) return;
             const foodId = parseInt(e.target.getAttribute('data-id'));
+            const logDate = dateInput.value;
+            console.log('Adding foodId:', foodId, 'for date:', logDate);
             const originalText = e.target.textContent;
             e.target.textContent = 'Adding...';
             e.target.disabled = true;
             try {
-                // Always use the date input value for logging
-                const logDate = dateInput.value;
                 const response = await fetch(`${API_BASE}/api/food-log`, {
                     method: 'POST',
                     headers: {
@@ -376,8 +379,9 @@
 
         async function loadFoodLog() {
             if (!checkAuth()) return;
+            const logDate = dateInput.value;
+            console.log('Loading food log for date:', logDate);
             try {
-                const logDate = dateInput.value;
                 const response = await fetch(`${API_BASE}/api/food-log?date=${logDate}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
