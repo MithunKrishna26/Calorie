@@ -247,6 +247,8 @@ async function initDatabase() {
         { name: "Month Master", description: "Work out for 30 consecutive days", icon: "fas fa-calendar-alt", criteria_type: "streak_days", criteria_value: 30 },
         { name: "Century Club", description: "Complete 100 workouts", icon: "fas fa-trophy", criteria_type: "total_workouts", criteria_value: 100 },
         { name: "Calorie Counter", description: "Log food for 7 consecutive days", icon: "fas fa-utensils", criteria_type: "food_log_streak", criteria_value: 7 },
+        { name: "Goal Getter", description: "Achieve your first goal", icon: "fas fa-bullseye", criteria_type: "goals_completed", criteria_value: 1 },
+        { name: "Social Butterfly", description: "Share 5 public journal entries", icon: "fas fa-users", criteria_type: "public_entries", criteria_value: 5 },
         { name: "Nutrition Expert", description: "Log food for 30 consecutive days", icon: "fas fa-apple-alt", criteria_type: "food_log_streak", criteria_value: 30 },
       ]
 
