@@ -6,6 +6,49 @@
     <title>CalorieFit - Food Tracking</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .food-list-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .food-card {
+            background: #fff;
+            border-radius: 1.25rem;
+            box-shadow: 0 4px 24px rgba(80,80,160,0.10);
+            padding: 1.5rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: flex-start;
+            transition: box-shadow 0.2s;
+        }
+        .food-card:hover {
+            box-shadow: 0 8px 32px rgba(80,80,160,0.18);
+        }
+        .food-card h4 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #764ba2;
+            margin-bottom: 0.25rem;
+        }
+        .food-card .food-macros {
+            display: flex;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+            color: #888;
+        }
+        .food-card .food-serving {
+            font-size: 0.95rem;
+            color: #555;
+            margin-bottom: 0.5rem;
+        }
+        .food-card .add-btn {
+            margin-top: 0.5rem;
+            align-self: flex-end;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -263,9 +306,61 @@
             console.error('Global JS Error:', message, source, lineno, colno, error);
         };
 
+        // Show all foods on page load and when search is empty
+        async function showAllFoods() {
+            try {
+                const response = await fetch(`${API_BASE}/api/foods/search`);
+                if (!response.ok) throw new Error('Failed to fetch foods');
+                const foods = await response.json();
+                displayAllFoods(foods);
+            } catch (e) {
+                searchResults.innerHTML = '<p class="no-results">Failed to load foods.</p>';
+            }
+        }
+        function displayAllFoods(foods) {
+            searchResults.innerHTML = '';
+            if (!foods.length) {
+                searchResults.innerHTML = '<p class="no-results">No foods found in your database.</p>';
+                return;
+            }
+            const grid = document.createElement('div');
+            grid.className = 'food-list-grid';
+            foods.forEach(food => {
+                const card = document.createElement('div');
+                card.className = 'food-card';
+                card.innerHTML = `
+                    <h4>${food.name}</h4>
+                    <div class="food-serving">${food.serving}</div>
+                    <div class="food-macros">
+                        <span>${food.calories} kcal</span>
+                        <span>P: ${food.protein}g</span>
+                        <span>C: ${food.carbs}g</span>
+                        <span>F: ${food.fats}g</span>
+                    </div>
+                    <button class="btn primary add-btn" data-id="${food.id}">Add</button>
+                `;
+                grid.appendChild(card);
+            });
+            searchResults.appendChild(grid);
+            document.querySelectorAll('.add-btn').forEach(btn => {
+                btn.addEventListener('click', addToLog);
+            });
+        }
+        // On page load, show all foods
+        showAllFoods();
+        // If search is empty, show all foods
+        foodSearch.addEventListener('input', () => {
+            if (!foodSearch.value.trim()) showAllFoods();
+        });
+
+        // In searchFood, if query is empty, call showAllFoods instead
         async function searchFood() {
             if (!checkAuth()) return;
             const query = foodSearch.value.trim();
+            if (!query) {
+                showAllFoods();
+                return;
+            }
             console.log('Searching for:', query);
             // Show loading state
             searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Searching...';
