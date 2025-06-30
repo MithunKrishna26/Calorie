@@ -200,7 +200,7 @@
                 const res = await fetch(`${API_BASE}/api/community`);
                 const entries = await res.json();
                 if (!entries.length) {
-                    container.innerHTML = '<div class="empty-message">No public entries yet. Be the first to share!</div>';
+                    container.innerHTML = '<div class="empty-message">No public journal entries yet.<br>Only journals from users with public profiles are shown.<br><span style="color:#764ba2;">Make your profile public in your journal page to share with the community!</span></div>';
                     return;
                 }
                 container.innerHTML = entries.map(entry => `
