@@ -247,8 +247,6 @@ async function initDatabase() {
         { name: "Month Master", description: "Work out for 30 consecutive days", icon: "fas fa-calendar-alt", criteria_type: "streak_days", criteria_value: 30 },
         { name: "Century Club", description: "Complete 100 workouts", icon: "fas fa-trophy", criteria_type: "total_workouts", criteria_value: 100 },
         { name: "Calorie Counter", description: "Log food for 7 consecutive days", icon: "fas fa-utensils", criteria_type: "food_log_streak", criteria_value: 7 },
-        { name: "Goal Getter", description: "Achieve your first goal", icon: "fas fa-bullseye", criteria_type: "goals_completed", criteria_value: 1 },
-        { name: "Social Butterfly", description: "Share 5 public journal entries", icon: "fas fa-users", criteria_type: "public_entries", criteria_value: 5 },
         { name: "Nutrition Expert", description: "Log food for 30 consecutive days", icon: "fas fa-apple-alt", criteria_type: "food_log_streak", criteria_value: 30 },
       ]
 
@@ -574,9 +572,9 @@ app.post("/api/activity-log", authenticateToken, async (req, res) => {
       return res.status(404).json({ error: "Activity not found" })
     }
 
-    // Ensure date is in YYYY-MM-DD format and handle timezone properly
-    const formattedDate = new Date(date + 'T00:00:00').toISOString().split('T')[0]
-    console.log('Formatted date for storage:', formattedDate)
+    // Use the date directly without timezone conversion to avoid off-by-one errors
+    const formattedDate = date // Use the date as-is from the form
+    console.log('Using date for storage:', formattedDate)
 
     // Add to activity log
     const result = await pool.query(
@@ -660,6 +658,8 @@ app.get("/api/activity-calendar", authenticateToken, async (req, res) => {
     const { year, month } = req.query
     const userId = req.user.userId
 
+    console.log(`Fetching calendar for user ${userId}, year ${year}, month ${month}`)
+
     const result = await pool.query(
       `
       SELECT DISTINCT al.date
@@ -672,7 +672,13 @@ app.get("/api/activity-calendar", authenticateToken, async (req, res) => {
       [userId, year, month],
     )
 
-    const workoutDays = result.rows.map((row) => row.date.toISOString().split("T")[0])
+    const workoutDays = result.rows.map((row) => {
+      // Ensure consistent date format
+      const date = new Date(row.date);
+      return date.toISOString().split('T')[0];
+    })
+    
+    console.log('Workout days found:', workoutDays)
     res.json(workoutDays)
   } catch (error) {
     console.error("Activity calendar fetch error:", error)
