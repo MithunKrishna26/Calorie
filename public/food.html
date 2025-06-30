@@ -200,32 +200,56 @@
             const day = String(date.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
+
+        // Always use the value from the date picker as the source of truth for selectedDate
+        const dateInput = document.getElementById('log-date-picker');
+
+        function setSelectedDateFromInput() {
+            // Use the value from the date input (YYYY-MM-DD)
+            const value = dateInput.value;
+            if (value) {
+                const [year, month, day] = value.split('-').map(Number);
+                selectedDate = new Date(year, month - 1, day);
+            }
+        }
+
         function updateDateDisplay() {
-            const dateInput = document.getElementById('log-date-picker');
+            // Set the date input value to the selected date
             dateInput.value = formatDateString(selectedDate);
             document.getElementById('current-date').textContent = selectedDate.toLocaleDateString('en-US', {
                 weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
             });
         }
+
         document.getElementById('prevDay').addEventListener('click', () => {
+            setSelectedDateFromInput();
             selectedDate.setDate(selectedDate.getDate() - 1);
             updateDateDisplay();
             loadFoodLog();
             updateNutritionTotals();
         });
         document.getElementById('nextDay').addEventListener('click', () => {
+            setSelectedDateFromInput();
             selectedDate.setDate(selectedDate.getDate() + 1);
             updateDateDisplay();
             loadFoodLog();
             updateNutritionTotals();
         });
-        document.getElementById('log-date-picker').addEventListener('change', (e) => {
-            const [year, month, day] = e.target.value.split('-').map(Number);
-            selectedDate = new Date(year, month - 1, day);
+        dateInput.addEventListener('change', () => {
+            setSelectedDateFromInput();
             updateDateDisplay();
             loadFoodLog();
             updateNutritionTotals();
         });
+
+        // On page load, set selectedDate to the date input value or today
+        if (!dateInput.value) {
+            selectedDate = new Date();
+            dateInput.value = formatDateString(selectedDate);
+        } else {
+            setSelectedDateFromInput();
+        }
+        updateDateDisplay();
 
         // Event listeners
         searchBtn.addEventListener('click', searchFood);
@@ -308,6 +332,8 @@
             e.target.textContent = 'Adding...';
             e.target.disabled = true;
             try {
+                // Always use the date input value for logging
+                const logDate = dateInput.value;
                 const response = await fetch(`${API_BASE}/api/food-log`, {
                     method: 'POST',
                     headers: {
@@ -316,7 +342,7 @@
                     },
                     body: JSON.stringify({
                         foodId: foodId,
-                        date: formatDateString(selectedDate)
+                        date: logDate
                     })
                 });
                 if (!response.ok) {
@@ -347,14 +373,13 @@
 
         async function loadFoodLog() {
             if (!checkAuth()) return;
-
             try {
-                const response = await fetch(`${API_BASE}/api/food-log?date=${formatDateString(selectedDate)}`, {
+                const logDate = dateInput.value;
+                const response = await fetch(`${API_BASE}/api/food-log?date=${logDate}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
                 if (!response.ok) {
                     if (response.status === 401) {
                         localStorage.removeItem('token');
@@ -363,7 +388,6 @@
                     }
                     throw new Error('Failed to load food log');
                 }
-
                 const foodLog = await response.json();
                 displayFoodLog(foodLog);
             } catch (error) {
@@ -448,16 +472,14 @@
 
         async function updateNutritionTotals() {
             if (!checkAuth()) return;
-
             try {
-                const response = await fetch(`${API_BASE}/api/food-log?date=${formatDateString(selectedDate)}`, {
+                const logDate = dateInput.value;
+                const response = await fetch(`${API_BASE}/api/food-log?date=${logDate}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
                 if (!response.ok) return;
-
                 const foodLog = await response.json();
                 const totals = foodLog.reduce((acc, item) => {
                     acc.calories += item.calories;
@@ -466,7 +488,6 @@
                     acc.fats += parseFloat(item.fats);
                     return acc;
                 }, { calories: 0, protein: 0, carbs: 0, fats: 0 });
-
                 totalCalories.textContent = totals.calories;
                 totalProtein.textContent = totals.protein.toFixed(1);
                 totalCarbs.textContent = totals.carbs.toFixed(1);
@@ -474,14 +495,6 @@
             } catch (error) {
                 console.error('Update nutrition totals error:', error);
             }
-        }
-
-        // Initialize
-        updateDateDisplay();
-        if (checkAuth()) {
-            loadFoodLog();
-            updateNutritionTotals();
-            searchFood(); // Load all foods initially
         }
     </script>
 </body>
