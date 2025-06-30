@@ -706,12 +706,16 @@ app.get("/api/activity-calendar", authenticateToken, async (req, res) => {
       [userId, year, month],
     )
 
+    // Return dates as YYYY-MM-DD strings (no timezone shift)
     const workoutDays = result.rows.map((row) => {
-      // Ensure consistent date format
-      const date = new Date(row.date);
-      return date.toISOString().split('T')[0];
-    })
-    
+      if (row.date instanceof Date) {
+        return row.date.toISOString().slice(0, 10);
+      } else if (typeof row.date === 'string') {
+        return row.date.slice(0, 10);
+      } else {
+        return String(row.date).slice(0, 10);
+      }
+    });
     console.log('Workout days found:', workoutDays)
     res.json(workoutDays)
   } catch (error) {
@@ -766,7 +770,12 @@ app.get("/api/activity-stats", authenticateToken, async (req, res) => {
     `,
       [userId, year, month],
     )
-    console.log('Date check result:', dateCheck.rows)
+    // Format dateCheck rows to always use YYYY-MM-DD
+    const dateCheckRows = dateCheck.rows.map(row => ({
+      ...row,
+      date: (row.date instanceof Date) ? row.date.toISOString().slice(0, 10) : (typeof row.date === 'string' ? row.date.slice(0, 10) : String(row.date).slice(0, 10))
+    }))
+    console.log('Date check result:', dateCheckRows)
 
     // Remove streak calculation to avoid aggregate nesting error
     // If you want to add streaks, do it in a separate endpoint or with a different query
