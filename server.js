@@ -768,36 +768,13 @@ app.get("/api/activity-stats", authenticateToken, async (req, res) => {
     )
     console.log('Date check result:', dateCheck.rows)
 
-    // Calculate current streak with a simpler approach
-    const streakResult = await pool.query(
-      `
-      WITH workout_dates AS (
-        SELECT DISTINCT al.date
-        FROM activity_logs al
-        WHERE al.user_id = $1
-        ORDER BY al.date DESC
-      ),
-      recent_workouts AS (
-        SELECT date,
-               ROW_NUMBER() OVER (ORDER BY date DESC) as rn,
-               date - (ROW_NUMBER() OVER (ORDER BY date DESC) || ' days')::INTERVAL as grp
-        FROM workout_dates
-        WHERE date >= CURRENT_DATE - INTERVAL '30 days'
-      )
-      SELECT COALESCE(MAX(COUNT(*)), 0) as current_streak
-      FROM recent_workouts
-      WHERE grp = (SELECT grp FROM recent_workouts WHERE rn = 1)
-    `,
-      [userId],
-    )
-
-    console.log('Streak result:', streakResult.rows[0])
+    // Remove streak calculation to avoid aggregate nesting error
+    // If you want to add streaks, do it in a separate endpoint or with a different query
 
     const stats = {
       totalCalories: Math.round(parseFloat(statsResult.rows[0].total_calories) || 0),
       totalMinutes: parseInt(statsResult.rows[0].total_minutes) || 0,
-      workoutDays: parseInt(statsResult.rows[0].workout_days) || 0,
-      currentStreak: parseInt(streakResult.rows[0].current_streak) || 0
+      workoutDays: parseInt(statsResult.rows[0].workout_days) || 0
     }
 
     console.log('Final stats:', stats)
