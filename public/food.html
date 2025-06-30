@@ -302,14 +302,10 @@
 
         async function addToLog(e) {
             if (!checkAuth()) return;
-
             const foodId = parseInt(e.target.getAttribute('data-id'));
             const originalText = e.target.textContent;
-            
-            // Show loading state
             e.target.textContent = 'Adding...';
             e.target.disabled = true;
-
             try {
                 const response = await fetch(`${API_BASE}/api/food-log`, {
                     method: 'POST',
@@ -322,7 +318,6 @@
                         date: formatDateString(selectedDate)
                     })
                 });
-
                 if (!response.ok) {
                     if (response.status === 401) {
                         localStorage.removeItem('token');
@@ -331,11 +326,9 @@
                     }
                     throw new Error('Failed to add food');
                 }
-
                 await loadFoodLog();
                 updateNutritionTotals();
-                
-                // Show success feedback
+                searchFood(); // Always refresh food search results after logging
                 e.target.textContent = 'Added!';
                 e.target.style.background = '#10b981';
                 setTimeout(() => {
@@ -380,12 +373,11 @@
 
         function displayFoodLog(foodLog) {
             logItems.innerHTML = '';
-            
+            // Always clear the log and show the correct empty message for the selected day
             if (foodLog.length === 0) {
-                logItems.innerHTML = '<p class="empty-message">No food logged yet today</p>';
+                logItems.innerHTML = `<p class="empty-message">No food logged yet for this day</p>`;
                 return;
             }
-
             foodLog.forEach(item => {
                 const logItem = document.createElement('div');
                 logItem.className = 'log-item';
@@ -411,7 +403,6 @@
                 `;
                 logItems.appendChild(logItem);
             });
-
             document.querySelectorAll('.remove-btn').forEach(btn => {
                 btn.addEventListener('click', removeFromLog);
             });
