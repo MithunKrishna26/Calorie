@@ -355,7 +355,10 @@
                 }
                 await loadFoodLog();
                 updateNutritionTotals();
-                searchFood(); // Always refresh food search results after logging
+                // Only refresh search results if there is a search query
+                if (foodSearch.value.trim()) {
+                    searchFood();
+                }
                 e.target.textContent = 'Added!';
                 e.target.style.background = '#10b981';
                 setTimeout(() => {
