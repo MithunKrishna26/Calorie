@@ -317,20 +317,14 @@
 
         async function logActivity(event) {
             event.preventDefault();
-
             const activityId = document.getElementById('activitySelect').value;
             const durationMinutes = document.getElementById('durationInput').value;
             const date = document.getElementById('activityDate').value;
             const notes = document.getElementById('activityNotes').value;
-
-            // Debug log for date
-            console.log('Date being sent to backend (should be YYYY-MM-DD):', date);
-
             if (!activityId || !durationMinutes || !date) {
                 alert('Please fill in all required fields');
                 return;
             }
-
             try {
                 const requestBody = {
                     activityId: parseInt(activityId),
@@ -338,7 +332,6 @@
                     date: date,
                     notes: notes
                 };
-
                 const response = await fetch(`${API_BASE}/api/activity-log`, {
                     method: 'POST',
                     headers: {
@@ -347,21 +340,11 @@
                     },
                     body: JSON.stringify(requestBody)
                 });
-
                 if (response.ok) {
                     const result = await response.json();
-                    // Reset form properly
                     document.getElementById('activitySelect').value = '';
                     document.getElementById('durationInput').value = '';
                     document.getElementById('activityNotes').value = '';
-                    // Reset to today's date in YYYY-MM-DD
-                    const today = new Date();
-                    const year = today.getFullYear();
-                    const month = String(today.getMonth() + 1).padStart(2, '0');
-                    const day = String(today.getDate()).padStart(2, '0');
-                    const formattedToday = `${year}-${month}-${day}`;
-                    document.getElementById('activityDate').value = formattedToday;
-                    // Reload data
                     loadTodayActivities();
                     loadActivityCalendar();
                     loadMonthlyStats();
@@ -433,7 +416,6 @@
             if (!confirm('Are you sure you want to delete this activity?')) {
                 return;
             }
-
             try {
                 const response = await fetch(`${API_BASE}/api/activity-log/${activityId}`, {
                     method: 'DELETE',
@@ -441,7 +423,6 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
                 if (response.ok) {
                     loadTodayActivities();
                     loadActivityCalendar();
