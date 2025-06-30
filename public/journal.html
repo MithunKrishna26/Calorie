@@ -30,14 +30,16 @@
             gap: 1rem;
             position: relative;
             transition: box-shadow 0.2s;
+            overflow: hidden;
         }
         .journal-entry:hover {
             box-shadow: 0 8px 32px rgba(80,80,160,0.18);
         }
         .entry-header {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
             gap: 1rem;
+            flex-wrap: wrap;
         }
         .entry-icon {
             background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
@@ -90,6 +92,8 @@
             margin-left: auto;
             display: flex;
             gap: 0.5rem;
+            flex-wrap: wrap;
+            align-items: center;
         }
         .btn-edit, .btn-delete {
             background: none;
@@ -186,6 +190,18 @@
             align-items: center;
             justify-content: center;
             margin: 0;
+        }
+        @media (max-width: 600px) {
+            .entry-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            .entry-actions {
+                margin-left: 0;
+                width: 100%;
+                justify-content: flex-end;
+            }
         }
     </style>
 </head>
