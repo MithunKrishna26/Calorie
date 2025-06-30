@@ -1002,10 +1002,10 @@ app.get("/api/community", async (req, res) => {
   try {
     const result = await pool.query(
       `
-      SELECT je.*, u.name as author_name, u.profile_public
+      SELECT je.*, u.name as author_name
       FROM journal_entries je
       JOIN users u ON je.user_id = u.id
-      WHERE je.is_public = true AND u.profile_public = true
+      WHERE je.is_public = true
       ORDER BY je.created_at DESC
       LIMIT 50
     `,
