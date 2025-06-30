@@ -266,6 +266,38 @@ async function initDatabase() {
   }
 }
 
+// Add this helper function to check and award goal-related badges
+async function checkAndAwardGoalBadges(userId, pool) {
+  // Count completed goals for this user
+  const completedGoalsResult = await pool.query(
+    "SELECT COUNT(*) FROM user_goals WHERE user_id = $1 AND (is_completed = true OR (target_value IS NOT NULL AND current_value >= target_value))",
+    [userId]
+  );
+  const completedGoals = parseInt(completedGoalsResult.rows[0].count);
+
+  // Find all badges for goals_completed
+  const goalBadgesResult = await pool.query(
+    "SELECT * FROM badges WHERE criteria_type = 'goals_completed' AND criteria_value <= $1",
+    [completedGoals]
+  );
+  const goalBadges = goalBadgesResult.rows;
+
+  for (const badge of goalBadges) {
+    // Check if user already has this badge
+    const userBadgeResult = await pool.query(
+      "SELECT 1 FROM user_badges WHERE user_id = $1 AND badge_id = $2",
+      [userId, badge.id]
+    );
+    if (userBadgeResult.rows.length === 0) {
+      // Award badge
+      await pool.query(
+        "INSERT INTO user_badges (user_id, badge_id) VALUES ($1, $2)",
+        [userId, badge.id]
+      );
+    }
+  }
+}
+
 // Routes
 
 // Auth Routes
@@ -823,6 +855,9 @@ app.put("/api/goals/:id", authenticateToken, async (req, res) => {
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Goal not found" })
     }
+
+    // Check and award goal-related badges
+    await checkAndAwardGoalBadges(req.user.userId, pool);
 
     res.json(result.rows[0])
   } catch (error) {
