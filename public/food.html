@@ -426,13 +426,36 @@
 
         async function addToLog(e) {
             if (!checkAuth()) return;
-            const foodId = parseInt(e.target.getAttribute('data-id'));
-            const logDate = dateInput.value;
-            console.log('Adding foodId:', foodId, 'for date:', logDate);
+            let foodId = e.target.getAttribute('data-id');
             const originalText = e.target.textContent;
             e.target.textContent = 'Adding...';
             e.target.disabled = true;
             try {
+                // If no foodId, this is an API food, so insert it first
+                if (!foodId) {
+                    // Find the food card and extract details
+                    const card = e.target.closest('.food-card');
+                    const name = card.querySelector('h4').textContent;
+                    const serving = card.querySelector('.food-serving').textContent;
+                    const macros = card.querySelectorAll('.food-macros span');
+                    const calories = parseFloat(macros[0].textContent);
+                    const protein = parseFloat(macros[1].textContent.replace('P:','').replace('g',''));
+                    const carbs = parseFloat(macros[2].textContent.replace('C:','').replace('g',''));
+                    const fats = parseFloat(macros[3].textContent.replace('F:','').replace('g',''));
+                    // Insert into local DB
+                    const resp = await fetch(`${API_BASE}/api/foods`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ name, calories, protein, carbs, fats, serving })
+                    });
+                    if (!resp.ok) throw new Error('Failed to add food to database');
+                    const newFood = await resp.json();
+                    foodId = newFood.id;
+                }
+                const logDate = dateInput.value;
                 const response = await fetch(`${API_BASE}/api/food-log`, {
                     method: 'POST',
                     headers: {
@@ -440,7 +463,7 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify({
-                        foodId: foodId,
+                        foodId: parseInt(foodId),
                         date: logDate
                     })
                 });
@@ -454,7 +477,6 @@
                 }
                 await loadFoodLog();
                 updateNutritionTotals();
-                // Only refresh search results if there is a search query
                 if (foodSearch.value.trim()) {
                     searchFood();
                 }
