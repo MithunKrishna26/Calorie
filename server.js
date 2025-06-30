@@ -1206,6 +1206,29 @@ app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"))
 })
 
+// Add new food to database
+app.post('/api/foods', async (req, res) => {
+  try {
+    const { name, calories, protein, carbs, fats, serving } = req.body;
+    if (!name || calories == null || protein == null || carbs == null || fats == null || !serving) {
+      return res.status(400).json({ error: 'All fields are required' });
+    }
+    // Check if food already exists by name (case-insensitive)
+    const existing = await pool.query('SELECT * FROM foods WHERE LOWER(name) = LOWER($1)', [name]);
+    if (existing.rows.length > 0) {
+      return res.json(existing.rows[0]);
+    }
+    const result = await pool.query(
+      'INSERT INTO foods (name, calories, protein, carbs, fats, serving) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [name, calories, protein, carbs, fats, serving]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Add food error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Start server
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`)
