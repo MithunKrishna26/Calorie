@@ -144,6 +144,49 @@
             background: #fff;
             padding: 2rem 1.5rem;
         }
+        /* Modal overlay and centering fix */
+        #editModal.modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.35);
+            align-items: center;
+            justify-content: center;
+        }
+        #editModal.modal[style*="display: block"] {
+            display: flex !important;
+        }
+        .modal-content {
+            background: #fff;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 40px rgba(80,80,160,0.18);
+            padding: 2.5rem 2rem;
+            min-width: 340px;
+            max-width: 95vw;
+            position: relative;
+            margin: auto;
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        /* Prevent modal button from being full width at bottom */
+        #editForm .btn-primary {
+            width: auto;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
     </style>
 </head>
 <body>
@@ -233,6 +276,11 @@
                 </div>
 
                 <div class="journal-container">
+                    <!-- Add a message and button if the user's profile is not public -->
+                    <div id="profilePublicMsg" style="display:none; margin-bottom:1.5rem; background:#fef3c7; color:#92400e; padding:1rem 2rem; border-radius:1rem; text-align:center; font-weight:500;">
+                        Your profile is private. Public journal entries will not appear in the community. <button id="makeProfilePublic" class="btn-primary" style="margin-left:1rem;">Make Profile Public</button>
+                    </div>
+
                     <!-- Add New Entry -->
                     <div class="add-entry-card">
                         <div class="card-header">
@@ -370,6 +418,7 @@
             if (!checkAuth()) return;
             loadJournalEntries();
             setupEventListeners();
+            checkProfilePublic();
         });
 
         function setupEventListeners() {
@@ -608,6 +657,23 @@
             if (event.target === modal) {
                 closeEditModal();
             }
+        }
+
+        // On page load, check if profile is public
+        async function checkProfilePublic() {
+            try {
+                const res = await fetch(`${API_BASE}/api/profile`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+                if (!res.ok) return;
+                const user = await res.json();
+                if (!user.profile_public) {
+                    document.getElementById('profilePublicMsg').style.display = '';
+                    document.getElementById('makeProfilePublic').onclick = async function() {
+                        await fetch(`${API_BASE}/api/profile/public`, { method: 'PUT', headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+                        document.getElementById('profilePublicMsg').style.display = 'none';
+                        showNotification('Your profile is now public!', 'success');
+                    }
+                }
+            } catch {}
         }
     </script>
 </body>
