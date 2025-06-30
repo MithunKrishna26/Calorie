@@ -486,6 +486,7 @@ app.get("/api/foods/search", async (req, res) => {
 app.post("/api/food-log", authenticateToken, async (req, res) => {
   try {
     const { foodId, date } = req.body
+    console.log('POST /api/food-log user:', req.user.userId, 'date:', date, 'foodId:', foodId)
 
     if (!foodId || !date) {
       return res.status(400).json({ error: "Food ID and date are required" })
@@ -525,6 +526,7 @@ app.post("/api/food-log", authenticateToken, async (req, res) => {
 app.get("/api/food-log", authenticateToken, async (req, res) => {
   try {
     const { date } = req.query
+    console.log('GET /api/food-log user:', req.user.userId, 'date:', date)
 
     if (!date) {
       return res.status(400).json({ error: "Date parameter is required" })
