@@ -397,14 +397,12 @@ app.post("/logout", (req, res) => {
 // Profile Routes
 app.get("/api/user/profile", authenticateToken, async (req, res) => {
   try {
-    const result = await pool.query("SELECT id, email, name, age, gender, height, weight FROM users WHERE id = $1", [
+    const result = await pool.query("SELECT id, email, name, age, gender, height, weight, profile_public FROM users WHERE id = $1", [
       req.user.userId,
     ])
-
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "User not found" })
     }
-
     res.json(result.rows[0])
   } catch (error) {
     console.error("Profile fetch error:", error)
@@ -415,23 +413,19 @@ app.get("/api/user/profile", authenticateToken, async (req, res) => {
 app.put("/api/profile", authenticateToken, async (req, res) => {
   try {
     const { name, age, gender, height, weight } = req.body
-
     if (!name || !age || !gender || !height || !weight) {
       return res.status(400).json({ error: "All profile fields are required" })
     }
-
     const result = await pool.query(
       `UPDATE users 
        SET name = $1, age = $2, gender = $3, height = $4, weight = $5, updated_at = CURRENT_TIMESTAMP
        WHERE id = $6 
-       RETURNING id, email, name, age, gender, height, weight`,
+       RETURNING id, email, name, age, gender, height, weight, profile_public`,
       [name, age, gender, height, weight, req.user.userId],
     )
-
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "User not found" })
     }
-
     res.json(result.rows[0])
   } catch (error) {
     console.error("Profile update error:", error)
