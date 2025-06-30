@@ -64,6 +64,13 @@
             </div>
         </main>
     </div>
+    <!-- User Details Modal -->
+    <div id="userModal" class="user-modal" style="display:none;">
+      <div class="user-modal-content">
+        <span class="user-modal-close" onclick="closeUserModal()">&times;</span>
+        <div id="userModalBody"></div>
+      </div>
+    </div>
     <style>
         .community-grid {
             display: grid;
@@ -115,6 +122,68 @@
             color: #a18cd1;
             font-weight: 500;
         }
+        .user-modal {
+          position: fixed;
+          z-index: 1000;
+          left: 0; top: 0; right: 0; bottom: 0;
+          background: rgba(0,0,0,0.35);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .user-modal-content {
+          background: #fff;
+          border-radius: 1.5rem;
+          box-shadow: 0 8px 40px rgba(80,80,160,0.18);
+          padding: 2.5rem 2rem;
+          min-width: 340px;
+          max-width: 95vw;
+          position: relative;
+          animation: fadeIn 0.2s;
+        }
+        .user-modal-close {
+          position: absolute;
+          top: 1rem;
+          right: 1.5rem;
+          font-size: 2rem;
+          color: #888;
+          cursor: pointer;
+          font-weight: 700;
+        }
+        .user-modal-header {
+          display: flex;
+          align-items: center;
+          gap: 1.5rem;
+          margin-bottom: 1.5rem;
+        }
+        .user-modal-avatar {
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: #fff;
+          border-radius: 50%;
+          width: 3.5rem;
+          height: 3.5rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 2rem;
+          font-weight: 700;
+        }
+        .user-modal-meta {
+          font-size: 1rem;
+          color: #888;
+          margin-top: 0.25rem;
+        }
+        .user-modal-stats {
+          font-size: 1.1rem;
+          color: #333;
+          margin-top: 1rem;
+          display: flex;
+          gap: 2.5rem;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: none; }
+        }
     </style>
     <script>
         const API_BASE = window.location.origin;
@@ -132,7 +201,7 @@
                     return;
                 }
                 container.innerHTML = entries.map(entry => `
-                    <div class="community-card">
+                    <div class="community-card" onclick="showUserModal(${entry.user_id})" style="cursor:pointer;">
                         <div class="community-author">
                             <div class="community-avatar">${(entry.author_name||'U')[0]}</div>
                             <div>
@@ -153,6 +222,39 @@
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = 'index.html';
+        }
+        function showUserModal(userId) {
+          const modal = document.getElementById('userModal');
+          const body = document.getElementById('userModalBody');
+          body.innerHTML = '<div>Loading user details...</div>';
+          modal.style.display = 'block';
+          fetch(`${API_BASE}/api/community/user/${userId}`)
+            .then(res => res.json())
+            .then(user => {
+              if (user.error) {
+                body.innerHTML = `<div class='empty-message'>${user.error}</div>`;
+                return;
+              }
+              body.innerHTML = `
+                <div class='user-modal-header'>
+                  <div class='user-modal-avatar'>${user.name ? user.name[0] : 'U'}</div>
+                  <div>
+                    <h2>${user.name || 'Unknown User'}</h2>
+                    <div class='user-modal-meta'>Joined: ${new Date(user.joined_at).toLocaleDateString()}</div>
+                  </div>
+                </div>
+                <div class='user-modal-stats'>
+                  <div><b>Public Journals:</b> ${user.journal_entries}</div>
+                  <div><b>Total Workouts:</b> ${user.total_workouts}</div>
+                </div>
+              `;
+            })
+            .catch(() => {
+              body.innerHTML = '<div class="empty-message">Failed to load user details.</div>';
+            });
+        }
+        function closeUserModal() {
+          document.getElementById('userModal').style.display = 'none';
         }
     </script>
 </body>
