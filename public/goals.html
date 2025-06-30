@@ -152,24 +152,20 @@
                         </form>
                     </div>
 
-                    <!-- Active Goals -->
+                    <!-- Ongoing Activities -->
                     <div class="active-goals-card">
                         <div class="card-header">
-                            <h2><i class="fas fa-target"></i> Active Goals</h2>
+                            <h2><i class="fas fa-running"></i> Ongoing Activities</h2>
                         </div>
-                        <div id="activeGoals" class="goals-list">
-                            <!-- Goals will be populated by JavaScript -->
-                        </div>
+                        <div id="ongoingGoals" class="goals-list"></div>
                     </div>
 
-                    <!-- Goal Progress -->
-                    <div class="goal-progress-card">
+                    <!-- Completed Activities -->
+                    <div class="completed-goals-card">
                         <div class="card-header">
-                            <h2><i class="fas fa-chart-line"></i> Goal Progress</h2>
+                            <h2><i class="fas fa-check-circle"></i> Completed Activities</h2>
                         </div>
-                        <div id="goalProgress" class="progress-grid">
-                            <!-- Progress will be populated by JavaScript -->
-                        </div>
+                        <div id="completedGoals" class="goals-list"></div>
                     </div>
 
                     <!-- Achievement Badges -->
@@ -307,7 +303,6 @@
                 if (response.ok) {
                     userGoals = await response.json();
                     renderGoals();
-                    renderGoalProgress();
                 }
             } catch (error) {
                 console.error('Failed to load goals:', error);
@@ -315,14 +310,23 @@
         }
 
         function renderGoals() {
-            const container = document.getElementById('activeGoals');
-            
-            if (userGoals.length === 0) {
-                container.innerHTML = '<div class="empty-message">No goals set yet. Add your first goal above!</div>';
+            const ongoingContainer = document.getElementById('ongoingGoals');
+            const completedContainer = document.getElementById('completedGoals');
+            if (!userGoals || userGoals.length === 0) {
+                ongoingContainer.innerHTML = '<div class="empty-message">No goals set yet. Add your first goal above!</div>';
+                completedContainer.innerHTML = '';
                 return;
             }
+            const ongoingGoals = userGoals.filter(goal => !goal.is_completed && calculateProgress(goal) < 100);
+            const completedGoals = userGoals.filter(goal => goal.is_completed || calculateProgress(goal) >= 100);
+            ongoingContainer.innerHTML = ongoingGoals.length === 0 ? '<div class="empty-message">No ongoing activities</div>' :
+                ongoingGoals.map(goal => renderGoalCard(goal)).join('');
+            completedContainer.innerHTML = completedGoals.length === 0 ? '<div class="empty-message">No completed activities yet</div>' :
+                completedGoals.map(goal => renderGoalCard(goal)).join('');
+        }
 
-            container.innerHTML = userGoals.map(goal => `
+        function renderGoalCard(goal) {
+            return `
                 <div class="goal-item ${goal.is_completed ? 'completed' : ''}">
                     <div class="goal-icon">
                         <i class="fas ${getGoalIcon(goal.goal_type)}"></i>
@@ -349,46 +353,6 @@
                         <button onclick="deleteGoal(${goal.id})" class="btn-delete" title="Delete Goal">
                             <i class="fas fa-trash"></i>
                         </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renderGoalProgress() {
-            const container = document.getElementById('goalProgress');
-            const completedGoals = userGoals.filter(goal => goal.is_completed).length;
-            const totalGoals = userGoals.length;
-            // Calculate completion rate based on progress, not just is_completed
-            let totalPercent = 0;
-            userGoals.forEach(goal => {
-                if (goal.target_value && goal.current_value) {
-                    totalPercent += Math.min((goal.current_value / goal.target_value) * 100, 100);
-                }
-            });
-            const avgPercent = totalGoals > 0 ? Math.round(totalPercent / totalGoals) : 0;
-
-            container.innerHTML = `
-                <div class="progress-summary">
-                    <div class="progress-circle">
-                        <div class="progress-circle-fill" style="background: conic-gradient(#764ba2 ${avgPercent * 3.6}deg, #f1f5f9 0deg);"></div>
-                        <div class="progress-circle-text">
-                            <span class="progress-percentage">${avgPercent}%</span>
-                            <span class="progress-label">Complete</span>
-                        </div>
-                    </div>
-                    <div class="progress-stats">
-                        <div class="stat">
-                            <span class="stat-number">${completedGoals}</span>
-                            <span class="stat-label">Completed</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-number">${totalGoals - completedGoals}</span>
-                            <span class="stat-label">Active</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-number">${totalGoals}</span>
-                            <span class="stat-label">Total</span>
-                        </div>
                     </div>
                 </div>
             `;
@@ -561,8 +525,9 @@
             grid-template-columns: 1fr 1fr;
             gap: 2rem;
             margin-top: 2rem;
+            min-height: 700px;
         }
-        .add-goal-card, .active-goals-card, .goal-progress-card, .badges-card {
+        .add-goal-card, .active-goals-card, .completed-goals-card, .badges-card {
             background: #fff;
             border-radius: 1.5rem;
             box-shadow: 0 6px 32px rgba(80,80,160,0.10);
@@ -853,7 +818,7 @@
             }
         }
         @media (max-width: 700px) {
-            .add-goal-card, .active-goals-card, .goal-progress-card, .badges-card {
+            .add-goal-card, .active-goals-card, .completed-goals-card, .badges-card {
                 padding: 1rem 0.5rem;
             }
             .goals-container {
@@ -862,6 +827,9 @@
             .badges-grid {
                 grid-template-columns: 1fr;
             }
+        }
+        .add-goal-card {
+            min-height: 220px;
         }
     </style>
 </body>
