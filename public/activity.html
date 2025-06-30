@@ -352,16 +352,14 @@
 
         async function loadTodayActivities() {
             // Use the selected date directly without timezone conversion
-            const today = selectedDate.toISOString().split('T')[0];
+            const today = selectedDate ? selectedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
             console.log('Loading activities for date:', today);
-            
             try {
                 const response = await fetch(`${API_BASE}/api/activity-log?date=${today}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
                 if (response.ok) {
                     const todayActivities = await response.json();
                     console.log('Today\'s activities:', todayActivities);
@@ -507,9 +505,13 @@
             // Parse the string as local date (not UTC)
             const [year, month, day] = dateString.split('-').map(Number);
             selectedDate = new Date(year, month - 1, day);
-            document.getElementById('activityDate').value = dateString;
+            // Update the date input field to match the selected date
+            const activityDateInput = document.getElementById('activityDate');
+            if (activityDateInput) {
+                activityDateInput.value = dateString;
+            }
             renderCalendar();
-            loadTodayActivities();
+            loadTodayActivities(); // Always use the correct selectedDate
             updateTodayDate();
         }
 
